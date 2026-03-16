@@ -1,0 +1,2246 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0,user-scalable=no,viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="TinyTalker Pro">
+  <meta name="mobile-web-app-capable" content="yes">
+  <title>TinyTalker Pro</title>
+  <style>
+    /* ============================================================
+       TINYTALKER PRO — AAC for toddlers with autism
+       Fitzgerald Key color system + LAMP motor planning grid
+    ============================================================ */
+    :root {
+      --bg:          #FFFBF0;
+      --header-bg:   #1a3a5c;
+      --strip-bg:    #1a3a5c;
+
+      /* Fitzgerald Key */
+      --verb-bg:     #dcfce7;
+      --verb-bd:     #16a34a;
+      --verb-tx:     #14532d;
+
+      --noun-bg:     #ffedd5;
+      --noun-bd:     #ea580c;
+      --noun-tx:     #7c2d12;
+
+      --person-bg:   #fef9c3;
+      --person-bd:   #ca8a04;
+      --person-tx:   #713f12;
+
+      --social-bg:   #fce7f3;
+      --social-bd:   #db2777;
+      --social-tx:   #831843;
+
+      --radius-lg:   18px;
+      --radius-md:   12px;
+      --gap:         7px;
+    }
+
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0; padding: 0;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    html, body {
+      width: 100%; height: 100%;
+      background: var(--bg);
+      font-family: -apple-system, 'Helvetica Neue', Arial, sans-serif;
+      overflow: hidden;
+      touch-action: none;
+    }
+
+    /* ============ LAYOUT SHELL ============ */
+    #app {
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      padding: 6px 6px env(safe-area-inset-bottom, 6px) 6px;
+      gap: var(--gap);
+    }
+
+    /* ============ SENTENCE STRIP ============ */
+    #strip {
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+      gap: 6px;
+      background: var(--strip-bg);
+      border-radius: var(--radius-md);
+      padding: 5px 8px;
+      flex-shrink: 0;
+    }
+
+    #strip-words-list {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      flex: 1;
+      overflow: hidden;
+      min-height: 36px;
+    }
+
+    .strip-word {
+      background: rgba(255,255,255,0.92);
+      border-radius: 7px;
+      padding: 4px 10px;
+      font-size: 17px;
+      font-weight: 800;
+      color: var(--strip-bg);
+      white-space: nowrap;
+      animation: wordPop 0.18s ease-out;
+      flex-shrink: 0;
+    }
+
+    @keyframes wordPop {
+      from { transform: scale(0.6); opacity: 0; }
+      to   { transform: scale(1);   opacity: 1; }
+    }
+
+    #say-it-btn {
+      background: #FFD700;
+      color: #1a3a5c;
+      padding: 10px 18px;
+      font-size: 16px;
+      font-weight: 900;
+      border: none;
+      border-radius: 11px;
+      cursor: pointer;
+      line-height: 1;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-shrink: 0;
+      white-space: nowrap;
+      box-shadow: 0 3px 0 rgba(0,0,0,0.18);
+    }
+
+    #say-it-btn:active {
+      box-shadow: 0 1px 0 rgba(0,0,0,0.15);
+      transform: translateY(2px);
+    }
+
+    #clear-top-btn {
+      flex-shrink: 0;
+      border: none;
+      border-radius: 8px;
+      padding: 6px 9px;
+      font-size: 17px;
+      cursor: pointer;
+      background: rgba(255,255,255,0.12);
+      color: rgba(255,255,255,0.85);
+      line-height: 1;
+    }
+
+    @keyframes sayItShake {
+      0%, 100% { transform: translateX(0); }
+      15%       { transform: translateX(-7px); }
+      35%       { transform: translateX(7px); }
+      55%       { transform: translateX(-5px); }
+      75%       { transform: translateX(5px); }
+      90%       { transform: translateX(-2px); }
+    }
+
+    #say-it-btn.empty-shake {
+      animation: sayItShake 0.42s ease;
+      background: #ef4444 !important;
+      color: #fff !important;
+    }
+
+    /* ============ TOKEN BOARD ============ */
+    #tokens {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      justify-content: center;
+      flex-shrink: 0;
+      padding: 2px 0;
+    }
+
+    .tok-lbl {
+      font-size: 16px;
+      font-weight: 900;
+      color: #1a3a5c;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+    }
+
+    .tok-star {
+      font-size: 28px;
+      opacity: 0.18;
+      transition: opacity 0.25s, transform 0.25s, filter 0.25s;
+      line-height: 1;
+      user-select: none;
+    }
+
+    .tok-star.earned {
+      opacity: 1;
+      transform: scale(1.12);
+      filter: drop-shadow(0 0 5px gold);
+    }
+
+    .tok-ctrl {
+      flex-shrink: 0;
+      border: none;
+      border-radius: 8px;
+      padding: 6px 11px;
+      font-size: 14px;
+      font-weight: 800;
+      cursor: pointer;
+      background: #e5e7eb;
+      color: #374151;
+    }
+
+    /* ============ EDIT BANNER ============ */
+    #edit-banner {
+      display: none;
+      background: #fbbf24;
+      border-radius: 10px;
+      padding: 5px 12px;
+      font-size: 13px;
+      font-weight: 800;
+      color: #78350f;
+      align-items: center;
+      justify-content: space-between;
+      flex-shrink: 0;
+    }
+
+    body.edit-mode #edit-banner { display: flex; }
+    body.edit-mode { background: #fffbeb; }
+    body.edit-mode .comm-btn::after {
+      content: '✏️';
+      position: absolute;
+      top: 3px; right: 4px;
+      font-size: 11px;
+    }
+
+    .exit-edit-btn {
+      border: none;
+      border-radius: 7px;
+      padding: 4px 10px;
+      font-size: 12px;
+      font-weight: 800;
+      background: #78350f;
+      color: white;
+      cursor: pointer;
+    }
+
+    /* ============ MAIN VIEW ============ */
+    #main-view {
+      flex: 1;
+      min-height: 0;
+      display: flex;
+      flex-direction: column;
+      gap: var(--gap);
+    }
+
+    /* ============ FIRST/THEN PANEL ============ */
+    #ft-panel {
+      display: none;
+      flex: 1;
+      min-height: 0;
+      gap: 10px;
+    }
+
+    #ft-panel.active {
+      display: flex;
+    }
+
+    .ft-card {
+      flex: 1;
+      border-radius: 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      padding: 16px 10px;
+      border: 4px solid transparent;
+      cursor: pointer;
+      min-height: 0;
+    }
+
+    .ft-first {
+      background: #dbeafe;
+      border-color: #3b82f6;
+    }
+
+    .ft-then {
+      background: #dcfce7;
+      border-color: #16a34a;
+    }
+
+    .ft-label {
+      font-size: 12px;
+      font-weight: 900;
+      letter-spacing: 3px;
+      opacity: 0.5;
+    }
+
+    .ft-first .ft-label { color: #1e40af; }
+    .ft-then  .ft-label { color: #14532d; }
+
+    .ft-content {
+      font-size: 30px;
+      font-weight: 900;
+      text-align: center;
+      color: #1e3a5c;
+    }
+
+    .ft-img {
+      width: 90px;
+      height: 90px;
+      border-radius: 14px;
+      object-fit: cover;
+      display: none;
+    }
+
+    .ft-img.visible { display: block; }
+
+    /* ============ GRID BOARD ============ */
+    #grid-board {
+      flex: 1;
+      min-height: 0;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      grid-template-rows: repeat(4, 1fr);
+      gap: var(--gap);
+      height: 100%;
+    }
+
+    /* Landscape: flip to 4-col × 3-row */
+    @media (orientation: landscape) {
+      #grid-board {
+        grid-template-columns: repeat(4, 1fr);
+        grid-template-rows: repeat(3, 1fr);
+      }
+    }
+
+    /* Very small phones: allow scroll */
+    @media (max-height: 550px) {
+      #grid-board {
+        height: auto;
+        grid-template-rows: unset;
+        grid-auto-rows: minmax(80px, 1fr);
+        overflow-y: auto;
+      }
+    }
+
+    /* ============ COMMUNICATION BUTTONS ============ */
+    .comm-btn {
+      border-radius: var(--radius-lg);
+      border: 3px solid transparent;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      cursor: pointer;
+      text-align: center;
+      padding: 10px 4px;
+      user-select: none;
+      -webkit-user-select: none;
+      position: relative;
+      overflow: hidden;
+      /* Hold progress ring overlay */
+      --hold-pct: 0%;
+    }
+
+    /* Fitzgerald Key colors */
+    .cat-verb   { background: var(--verb-bg);   border-color: var(--verb-bd);   color: var(--verb-tx); }
+    .cat-noun   { background: var(--noun-bg);   border-color: var(--noun-bd);   color: var(--noun-tx); }
+    .cat-person { background: var(--person-bg); border-color: var(--person-bd); color: var(--person-tx); }
+    .cat-social { background: var(--social-bg); border-color: var(--social-bd); color: var(--social-tx); }
+
+    /* Hold-progress ring */
+    .comm-btn::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border-radius: inherit;
+      border: 4px solid transparent;
+      background: conic-gradient(
+        rgba(255,200,0,0.7) var(--hold-pct),
+        transparent var(--hold-pct)
+      ) border-box;
+      -webkit-mask: linear-gradient(#fff 0 0) padding-box, linear-gradient(#fff 0 0);
+      -webkit-mask-composite: destination-out;
+      mask-composite: exclude;
+      pointer-events: none;
+    }
+
+    .btn-icon {
+      font-size: 72px;
+      line-height: 1;
+      pointer-events: none;
+    }
+
+    .btn-photo {
+      width: 90px;
+      height: 90px;
+      border-radius: 10px;
+      object-fit: cover;
+      pointer-events: none;
+    }
+
+    .btn-label {
+      font-size: 15px;
+      font-weight: 900;
+      line-height: 1.1;
+      pointer-events: none;
+    }
+
+    /* Tap flash */
+    @keyframes tapFlash {
+      0%   { box-shadow: inset 0 0 0 0 rgba(255,215,0,0.9); }
+      40%  { box-shadow: inset 0 0 0 5px rgba(255,215,0,0.6); }
+      100% { box-shadow: inset 0 0 0 0 rgba(255,215,0,0); }
+    }
+
+    .btn-tapped { animation: tapFlash 0.35s ease; }
+
+    /* ============ TOOLBAR ============ */
+    #toolbar {
+      display: flex;
+      gap: 7px;
+      flex-shrink: 0;
+      height: 42px;
+    }
+
+    .tool-btn {
+      flex: 1;
+      border: none;
+      border-radius: 10px;
+      background: #e5e7eb;
+      color: #374151;
+      font-size: 13px;
+      font-weight: 800;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      line-height: 1;
+      position: relative;
+    }
+
+    .tool-btn.active { background: var(--header-bg); color: white; }
+    .tool-btn.muted  { background: #374151; color: #fbbf24; }
+
+    /* Hold-progress bar for buttons with 3-second hold */
+    #btn-edit::after,
+    #btn-ft::after,
+    #btn-quiet::after,
+    #btn-lock::after,
+    #btn-diary::after,
+    #btn-print::after {
+      content: '';
+      position: absolute;
+      bottom: 0; left: 0;
+      height: 3px;
+      width: var(--hold-pct, 0%);
+      background: #fbbf24;
+      border-radius: 0 0 10px 10px;
+      transition: width 0.05s linear;
+    }
+
+    /* ============ OVERLAYS ============ */
+    .overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.65);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 100;
+      padding: 20px;
+    }
+
+    .overlay.active { display: flex; }
+
+    .modal {
+      background: white;
+      border-radius: 20px;
+      padding: 22px;
+      width: 100%;
+      max-width: 340px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+    }
+
+    .modal-title {
+      font-size: 20px;
+      font-weight: 900;
+      color: var(--header-bg);
+    }
+
+    .modal-input {
+      border: 2px solid #d1d5db;
+      border-radius: 10px;
+      padding: 10px 12px;
+      font-size: 17px;
+      font-weight: 700;
+      width: 100%;
+      color: #111;
+      outline: none;
+    }
+
+    .modal-input:focus { border-color: var(--verb-bd); }
+
+    .photo-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .photo-thumb {
+      width: 64px;
+      height: 64px;
+      border-radius: 10px;
+      object-fit: cover;
+      display: none;
+      border: 2px solid #d1d5db;
+    }
+
+    .photo-thumb.visible { display: block; }
+
+    .photo-upload-btn {
+      flex: 1;
+      border: 2px dashed #d1d5db;
+      border-radius: 10px;
+      padding: 14px;
+      text-align: center;
+      font-size: 13px;
+      font-weight: 700;
+      color: #6b7280;
+      cursor: pointer;
+      background: none;
+    }
+
+    .btn-row {
+      display: flex;
+      gap: 8px;
+    }
+
+    .mbtn {
+      flex: 1;
+      border: none;
+      border-radius: 10px;
+      padding: 12px 6px;
+      font-size: 15px;
+      font-weight: 800;
+      cursor: pointer;
+    }
+
+    .mbtn-primary  { background: var(--header-bg); color: white; }
+    .mbtn-danger   { background: #dc2626; color: white; }
+    .mbtn-cancel   { background: #f3f4f6; color: #374151; }
+
+    /* ============ UNDO TOAST ============ */
+    #undo-toast {
+      display: none;
+      position: fixed;
+      bottom: 80px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #1a3a5c;
+      color: #fff;
+      border-radius: 14px;
+      padding: 10px 16px;
+      font-size: 15px;
+      font-weight: 800;
+      align-items: center;
+      gap: 10px;
+      z-index: 200;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+      white-space: nowrap;
+    }
+
+    #undo-toast.visible { display: flex; }
+
+    #undo-toast-bar {
+      position: absolute;
+      bottom: 0; left: 0;
+      height: 4px;
+      width: var(--undo-pct, 100%);
+      background: #FFD700;
+      border-radius: 0 0 14px 14px;
+      transition: width 0.05s linear;
+    }
+
+    #undo-toast-btn {
+      border: 2px solid rgba(255,255,255,0.5);
+      background: transparent;
+      color: #fff;
+      border-radius: 8px;
+      padding: 4px 10px;
+      font-size: 13px;
+      font-weight: 800;
+      cursor: pointer;
+    }
+
+    /* ============ CELEBRATION ============ */
+    #celebration {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.80);
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 18px;
+      z-index: 200;
+    }
+
+    #celebration.active { display: flex; }
+
+    .cel-stars {
+      font-size: 56px;
+      animation: celSpin 1.8s linear infinite;
+    }
+
+    @keyframes celSpin {
+      from { transform: rotate(0deg) scale(1); }
+      50%  { transform: rotate(180deg) scale(1.2); }
+      to   { transform: rotate(360deg) scale(1); }
+    }
+
+    .cel-text {
+      font-size: 46px;
+      font-weight: 900;
+      color: #FFD700;
+      text-align: center;
+      line-height: 1.2;
+      text-shadow: 0 3px 0 rgba(0,0,0,0.4);
+      animation: celBounce 0.5s ease-in-out infinite alternate;
+    }
+
+    @keyframes celBounce {
+      from { transform: scale(1) rotate(-1.5deg); }
+      to   { transform: scale(1.05) rotate(1.5deg); }
+    }
+
+    .cel-close {
+      background: white;
+      border: none;
+      border-radius: 16px;
+      padding: 14px 40px;
+      font-size: 22px;
+      font-weight: 900;
+      color: var(--header-bg);
+      cursor: pointer;
+    }
+
+
+    /* ============ BUTTON PULSE (haptic companion) ============ */
+    @keyframes btnPulse {
+      0%   { box-shadow: 0 0 0 0   rgba(255,215,0,0.75); }
+      70%  { box-shadow: 0 0 0 14px rgba(255,215,0,0); }
+      100% { box-shadow: 0 0 0 0   rgba(255,215,0,0); }
+    }
+    .btn-pulse {
+      animation: btnPulse 0.38s ease-out;
+    }
+
+    /* ============ COMM COUNTER BADGE ============ */
+    #comm-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      background: rgba(255,255,255,0.14);
+      border-radius: 20px;
+      padding: 3px 9px;
+      font-size: 12px;
+      font-weight: 800;
+      color: rgba(255,255,255,0.88);
+      flex-shrink: 0;
+      cursor: pointer;
+      white-space: nowrap;
+      border: 1px solid rgba(255,255,255,0.2);
+    }
+
+    /* ============ PAGE TABS ============ */
+    #page-tabs {
+      display: flex;
+      gap: 5px;
+      flex-shrink: 0;
+      padding: 1px 0;
+    }
+    .page-tab {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 3px;
+      padding: 8px 4px;
+      background: #e2e8f0;
+      border: 2px solid transparent;
+      border-radius: 12px;
+      font-size: 26px;
+      cursor: pointer;
+      transition: background 0.18s, border-color 0.18s, box-shadow 0.18s;
+      color: #64748b;
+      line-height: 1;
+    }
+    .page-tab-label {
+      font-size: 10px;
+      font-weight: 900;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: #64748b;
+    }
+    .page-tab.active {
+      background: #1a3a5c;
+      border-color: #1a3a5c;
+      color: #fff;
+      box-shadow: 0 3px 10px rgba(26,58,92,0.28);
+    }
+    .page-tab.active .page-tab-label {
+      color: #FFE566;
+    }
+
+    /* ============ LOCK SCREEN ============ */
+    #lock-screen {
+      position: fixed;
+      inset: 0;
+      background: rgba(26,58,92,0.97);
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      z-index: 300;
+      gap: 16px;
+      touch-action: auto;
+    }
+    #lock-screen.active { display: flex; }
+    #lock-icon { font-size: 72px; }
+    #lock-msg {
+      font-size: 24px;
+      font-weight: 900;
+      color: #FFE566;
+      text-align: center;
+    }
+    #lock-sub {
+      font-size: 15px;
+      color: rgba(255,255,255,0.65);
+      text-align: center;
+      max-width: 260px;
+    }
+    #unlock-btn {
+      position: relative;
+      background: rgba(255,255,255,0.12);
+      border: 2px solid rgba(255,229,102,0.6);
+      color: #FFE566;
+      border-radius: 16px;
+      padding: 14px 32px;
+      font-size: 18px;
+      font-weight: 900;
+      cursor: pointer;
+      overflow: hidden;
+      letter-spacing: 0.5px;
+    }
+    #unlock-bar {
+      position: absolute;
+      bottom: 0; left: 0;
+      height: 5px;
+      width: var(--unlock-pct, 0%);
+      background: #FFD700;
+      border-radius: 0 0 14px 14px;
+      transition: none;
+    }
+    #lock-hint {
+      font-size: 12px;
+      color: rgba(255,255,255,0.35);
+      margin-top: -4px;
+    }
+
+    /* ============ DIARY MODAL ============ */
+    #diary-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.55);
+      display: none;
+      align-items: flex-start;
+      justify-content: center;
+      z-index: 250;
+      padding: 16px;
+      overflow-y: auto;
+      touch-action: auto;
+    }
+    #diary-overlay.active { display: flex; }
+    #diary-modal {
+      background: white;
+      border-radius: 20px;
+      padding: 20px;
+      width: 100%;
+      max-width: 400px;
+      margin-top: 30px;
+    }
+    #diary-modal h2 {
+      font-size: 20px;
+      font-weight: 900;
+      color: #1a3a5c;
+      margin-bottom: 2px;
+    }
+    #diary-date {
+      font-size: 13px;
+      color: #64748b;
+      margin-bottom: 14px;
+    }
+    .diary-stat {
+      background: #f8fafc;
+      border-radius: 12px;
+      padding: 10px 14px;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .diary-stat-icon { font-size: 26px; }
+    .diary-stat-info { flex: 1; }
+    .diary-stat-label { font-size: 11px; color: #64748b; font-weight: 700; text-transform: uppercase; }
+    .diary-stat-value { font-size: 22px; font-weight: 900; color: #1a3a5c; }
+    #diary-words-title {
+      font-size: 12px;
+      font-weight: 800;
+      color: #64748b;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin: 12px 0 7px;
+    }
+    #diary-words-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 5px;
+      margin-bottom: 14px;
+      max-height: 130px;
+      overflow-y: auto;
+    }
+    .diary-word-chip {
+      background: #e0f2fe;
+      color: #0369a1;
+      border-radius: 20px;
+      padding: 3px 9px;
+      font-size: 12px;
+      font-weight: 700;
+    }
+    #diary-close-btn {
+      width: 100%;
+      background: #1a3a5c;
+      color: white;
+      border: none;
+      border-radius: 12px;
+      padding: 12px;
+      font-size: 16px;
+      font-weight: 900;
+      cursor: pointer;
+    }
+    #diary-clear-btn {
+      width: 100%;
+      background: #fee2e2;
+      color: #991b1b;
+      border: none;
+      border-radius: 12px;
+      padding: 9px;
+      font-size: 12px;
+      font-weight: 800;
+      cursor: pointer;
+      margin-top: 7px;
+    }
+
+    /* ============ FIRST/THEN COMPLETION ============ */
+    .ft-card {
+      position: relative;
+    }
+    .ft-card.done {
+      opacity: 0.45;
+      filter: grayscale(0.55);
+    }
+    .ft-card.done::after {
+      content: '✓ Done!';
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 28px;
+      font-weight: 900;
+      color: #16a34a;
+      background: rgba(255,255,255,0.55);
+      border-radius: 20px;
+    }
+    .ft-card.next-up {
+      animation: ftGlow 1.1s ease-in-out infinite alternate;
+    }
+    @keyframes ftGlow {
+      from { box-shadow: 0 0 0 4px #FFD700, 0 0 10px rgba(255,215,0,0.35); }
+      to   { box-shadow: 0 0 0 6px #FFD700, 0 0 28px rgba(255,215,0,0.75); }
+    }
+
+    /* ============ PRINT ============ */
+    @media print {
+      #toolbar, #strip-controls, .tok-ctrl, #edit-banner,
+      #undo-toast, #celebration, #lock-screen, #diary-overlay,
+      #comm-badge, #page-tabs, #clear-top-btn,
+      #btn-lock, #btn-diary, #btn-print { display: none !important; }
+      body { background: white !important; overflow: visible !important; }
+      html, body { height: auto !important; }
+      #app { height: auto !important; overflow: visible !important; padding: 12px; }
+      #grid-board { page-break-inside: avoid; }
+      #strip { background: #f1f5f9 !important; }
+      #say-it-btn { background: #e2e8f0 !important; color: #1a3a5c !important; }
+      .comm-btn { box-shadow: none !important; border: 2px solid #ccc !important; }
+    }
+
+    /* ============ REDUCED MOTION ============ */
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+      }
+    }
+
+    /* ============ UTILITY ============ */
+    .hide { display: none !important; }
+  </style>
+</head>
+<body>
+
+<div id="app">
+
+  <!-- ─── SENTENCE STRIP ─── -->
+  <div id="strip">
+    <button id="say-it-btn" onclick="speakStrip()"><span style="font-size:17px">🗣️</span> SAY IT</button>
+    <div id="strip-words-list"></div>
+    <span id="comm-badge" onclick="openDiary()" title="Today's communication log">🗣️ 0</span>
+    <button id="clear-top-btn" onclick="clearStrip()" aria-label="Clear all words">🗑️</button>
+  </div>
+
+  <!-- ─── TOKEN BOARD ─── -->
+  <div id="tokens">
+    <span class="tok-lbl">GREAT JOB!</span>
+    <span class="tok-star" id="tok1">⭐</span>
+    <span class="tok-star" id="tok2">⭐</span>
+    <span class="tok-star" id="tok3">⭐</span>
+    <span class="tok-star" id="tok4">⭐</span>
+    <span class="tok-star" id="tok5">⭐</span>
+    <button class="tok-ctrl" onclick="addToken()" title="Give 1 token">+⭐</button>
+    <button class="tok-ctrl" onclick="fillTokens4()" title="Fill to 4 (backward chaining)">⭐⭐⭐⭐</button>
+    <button class="tok-ctrl" onclick="resetTokens()" title="Reset tokens">↺</button>
+  </div>
+
+  <!-- ─── EDIT BANNER ─── -->
+  <div id="edit-banner">
+    <span>✏️ Edit Mode — tap any button to change it</span>
+    <button class="exit-edit-btn" onclick="exitEditMode()">Done ✓</button>
+  </div>
+
+  <!-- ─── MAIN VIEW ─── -->
+  <div id="main-view">
+
+    <!-- Page tabs — at top so they're out of the way -->
+    <div id="page-tabs">
+      <button class="page-tab active" onclick="goToPage(0)">
+        💬<div class="page-tab-label">Core</div>
+      </button>
+      <button class="page-tab" onclick="goToPage(1)">
+        💭<div class="page-tab-label">Feelings</div>
+      </button>
+      <button class="page-tab" onclick="goToPage(2)">
+        🍎<div class="page-tab-label">Food & Fun</div>
+      </button>
+    </div>
+
+    <!-- First / Then Panel -->
+    <div id="ft-panel">
+      <div class="ft-card ft-first" id="ft-first-card">
+        <div class="ft-label">F I R S T</div>
+        <img class="ft-img" id="ft-first-img" alt="">
+        <div class="ft-content" id="ft-first-txt">Tap to set ✏️</div>
+      </div>
+      <div class="ft-card ft-then" id="ft-then-card">
+        <div class="ft-label">T H E N</div>
+        <img class="ft-img" id="ft-then-img" alt="">
+        <div class="ft-content" id="ft-then-txt">Tap to set ✏️</div>
+      </div>
+    </div>
+
+    <!-- Button Grid -->
+    <div id="grid-board"></div>
+
+  </div>
+
+  <!-- ─── TOOLBAR ─── -->
+  <div id="toolbar">
+    <button class="tool-btn active" id="btn-talk"    onclick="setMode('talk')">💬 TALK</button>
+    <button class="tool-btn"        id="btn-ft"
+            ontouchstart="startFtHold(event)" ontouchend="cancelFtHold()"
+            onmousedown="startFtHold(event)"  onmouseup="cancelFtHold()">📋 FIRST/THEN</button>
+    <button class="tool-btn"        id="btn-quiet"
+            ontouchstart="startQuietHold(event)" ontouchend="cancelQuietHold()"
+            onmousedown="startQuietHold(event)"  onmouseup="cancelQuietHold()">🔊 SOUND</button>
+    <button class="tool-btn"        id="btn-edit"
+            ontouchstart="startEditHold(event)" ontouchend="cancelEditHold()"
+            onmousedown="startEditHold(event)"  onmouseup="cancelEditHold()">✏️ EDIT</button>
+    <button class="tool-btn" id="btn-diary"
+            ontouchstart="startDiaryHold(event)" ontouchend="cancelDiaryHold()"
+            onmousedown="startDiaryHold(event)"  onmouseup="cancelDiaryHold()">📓 TODAY</button>
+    <button class="tool-btn" id="btn-print"
+            ontouchstart="startPrintHold(event)" ontouchend="cancelPrintHold()"
+            onmousedown="startPrintHold(event)"  onmouseup="cancelPrintHold()">🖨️ PRINT</button>
+    <button class="tool-btn" id="btn-lock"
+            ontouchstart="startLockActivate(event)" ontouchend="cancelLockActivate()"
+            onmousedown="startLockActivate(event)"  onmouseup="cancelLockActivate()">🔒 LOCK</button>
+  </div>
+
+</div>
+
+<!-- ─── EDIT BUTTON OVERLAY ─── -->
+<div class="overlay" id="edit-overlay">
+  <div class="modal">
+    <div class="modal-title" id="edit-modal-title">✏️ Change Button</div>
+    <input type="text" class="modal-input" id="edit-lbl-input" placeholder="Label text..." maxlength="16">
+    <div class="photo-row">
+      <img class="photo-thumb" id="edit-thumb" alt="preview">
+      <button class="photo-upload-btn" onclick="triggerPhoto('btn')">📷 Add Photo<br><small style="font-weight:400">Replace icon with a real photo</small></button>
+      <input type="file" id="btn-photo-input" accept="image/*" style="display:none" onchange="handleBtnPhoto(event)">
+    </div>
+    <div class="btn-row">
+      <button class="mbtn mbtn-primary" onclick="saveEdit()">Save ✓</button>
+      <button class="mbtn mbtn-danger"  onclick="resetEdit()">Reset</button>
+      <button class="mbtn mbtn-cancel"  onclick="closeEditOverlay()">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- ─── FIRST/THEN EDIT OVERLAY ─── -->
+<div class="overlay" id="ft-overlay">
+  <div class="modal">
+    <div class="modal-title" id="ft-modal-title">Set FIRST</div>
+    <input type="text" class="modal-input" id="ft-lbl-input" placeholder="What to do..." maxlength="20">
+    <div class="photo-row">
+      <img class="photo-thumb" id="ft-thumb" alt="preview">
+      <button class="photo-upload-btn" onclick="triggerPhoto('ft')">📷 Add Photo</button>
+      <input type="file" id="ft-photo-input" accept="image/*" style="display:none" onchange="handleFtPhoto(event)">
+    </div>
+    <div class="btn-row">
+      <button class="mbtn mbtn-primary" id="ft-save-btn">Save ✓</button>
+      <button class="mbtn mbtn-cancel"  id="ft-cancel-btn">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- ─── TOKEN UNDO TOAST ─── -->
+<div id="undo-toast">
+  <span id="undo-toast-bar"></span>
+  <span id="undo-toast-msg">⭐ 5th star! Celebrate? </span>
+  <button id="undo-toast-btn" onclick="cancelCelebration()">Oops! ↩</button>
+</div>
+
+<!-- ─── CELEBRATION ─── -->
+<div id="celebration">
+  <div class="cel-stars">⭐🌟⭐</div>
+  <div class="cel-text">GREAT<br>JOB! 🎉</div>
+  <div class="cel-stars">🎊🌟🎊</div>
+  <button class="cel-close" onclick="closeCelebration()">Yay! 🎊</button>
+</div>
+
+
+<!-- ─── LOCK SCREEN ─── -->
+<div id="lock-screen">
+  <div id="lock-icon">🔒</div>
+  <div id="lock-msg">Screen Locked</div>
+  <div id="lock-sub">Settings are protected</div>
+  <button id="unlock-btn"
+          ontouchstart="startUnlockHold(event)" ontouchend="cancelUnlockHold()"
+          onmousedown="startUnlockHold(event)"  onmouseup="cancelUnlockHold()">
+    🔓 Hold to Unlock
+    <span id="unlock-bar"></span>
+  </button>
+  <div id="lock-hint">Protecting settings from little fingers 👆</div>
+</div>
+
+<!-- ─── DIARY OVERLAY ─── -->
+<div id="diary-overlay">
+  <div id="diary-modal">
+    <h2>📓 Communication Diary</h2>
+    <div id="diary-date"></div>
+    <div class="diary-stat">
+      <span class="diary-stat-icon">🗣️</span>
+      <div class="diary-stat-info">
+        <div class="diary-stat-label">Words Spoken Today</div>
+        <div class="diary-stat-value" id="diary-total">0</div>
+      </div>
+    </div>
+    <div class="diary-stat">
+      <span class="diary-stat-icon">⭐</span>
+      <div class="diary-stat-info">
+        <div class="diary-stat-label">Most Used Word</div>
+        <div class="diary-stat-value" id="diary-top">—</div>
+      </div>
+    </div>
+    <div class="diary-stat">
+      <span class="diary-stat-icon">📅</span>
+      <div class="diary-stat-info">
+        <div class="diary-stat-label">Sessions This Week</div>
+        <div class="diary-stat-value" id="diary-sessions">0</div>
+      </div>
+    </div>
+    <div id="diary-words-title">Today's Words</div>
+    <div id="diary-words-list"></div>
+    <button id="diary-close-btn" onclick="closeDiary()">Close ✓</button>
+    <button id="diary-clear-btn" onclick="clearDiary()">Clear Today's Log</button>
+  </div>
+</div>
+
+<script>
+'use strict';
+
+/* ─────────────────────────────────────────────
+   POWER WORDS — Fitzgerald Key categorized
+   Grid order: motor-planning optimized
+   Row 1: core social verbs (high frequency)
+   Row 2: basic needs verbs
+   Row 3: object nouns + play
+   Row 4: person + emotional/social
+   ───────────────────────────────────────────── */
+const BUTTONS = [
+  { id:'p1',  label:'More',     speak:'More please',      cat:'verb',   icon:'🙏' },
+  { id:'p2',  label:'All Done', speak:'All done',         cat:'verb',   icon:'✋' },
+  { id:'p3',  label:'Help',     speak:'Help please',      cat:'verb',   icon:'🤝' },
+  { id:'p4',  label:'Go',       speak:'Go',               cat:'verb',   icon:'🏃' },
+  { id:'p5',  label:'Eat',      speak:'I want to eat',    cat:'verb',   icon:'🍽️' },
+  { id:'p6',  label:'Drink',    speak:'I want to drink',  cat:'verb',   icon:'🥤' },
+  { id:'p7',  label:'Milk',     speak:'I want milk',      cat:'noun',   icon:'🥛' },
+  { id:'p8',  label:'Toy',      speak:'I want my toy',    cat:'noun',   icon:'🧸' },
+  { id:'p9',  label:'Play',     speak:'I want to play',   cat:'verb',   icon:'🎈' },
+  { id:'p10', label:'Mom',      speak:'Mom',              cat:'person', icon:'👩' },
+  { id:'p11', label:'Yes',      speak:'Yes',              cat:'social', icon:'👍' },
+  { id:'p12', label:'No',       speak:'No',               cat:'social', icon:'🚫' },
+];
+
+
+const BUTTONS_P2 = [
+  { id:'f1',  label:'Happy',   speak:'I am happy',           cat:'social', icon:'😊' },
+  { id:'f2',  label:'Sad',     speak:'I am sad',             cat:'social', icon:'😢' },
+  { id:'f3',  label:'Mad',     speak:'I am mad',             cat:'social', icon:'😠' },
+  { id:'f4',  label:'Scared',  speak:'I am scared',          cat:'social', icon:'😨' },
+  { id:'f5',  label:'Hurt',    speak:'I am hurt',            cat:'social', icon:'🤕' },
+  { id:'f6',  label:'Tired',   speak:'I am tired',           cat:'social', icon:'😴' },
+  { id:'f7',  label:'Hot',     speak:'I am hot',             cat:'social', icon:'🥵' },
+  { id:'f8',  label:'Cold',    speak:'I am cold',            cat:'social', icon:'🥶' },
+  { id:'f9',  label:'Potty',   speak:'I need to use the potty', cat:'noun', icon:'🚽' },
+  { id:'f10', label:'Bath',    speak:'I want a bath',        cat:'noun',   icon:'🛁' },
+  { id:'f11', label:'Stop',    speak:'Stop',                 cat:'verb',   icon:'🛑' },
+  { id:'f12', label:'Outside', speak:'I want to go outside', cat:'verb',   icon:'🌳' },
+];
+
+const BUTTONS_P3 = [
+  { id:'e1',  label:'Snack',   speak:'I want a snack',       cat:'noun',   icon:'🍎' },
+  { id:'e2',  label:'Cookie',  speak:'I want a cookie',      cat:'noun',   icon:'🍪' },
+  { id:'e3',  label:'Juice',   speak:'I want juice',         cat:'noun',   icon:'🧃' },
+  { id:'e4',  label:'Water',   speak:'I want water',         cat:'noun',   icon:'💧' },
+  { id:'e5',  label:'Book',    speak:'I want to read a book',cat:'noun',   icon:'📚' },
+  { id:'e6',  label:'Music',   speak:'I want music',         cat:'noun',   icon:'🎵' },
+  { id:'e7',  label:'Car',     speak:'I want to go in the car', cat:'noun', icon:'🚗' },
+  { id:'e8',  label:'Park',    speak:'I want to go to the park', cat:'noun', icon:'⛲' },
+  { id:'e9',  label:'Home',    speak:'I want to go home',    cat:'noun',   icon:'🏠' },
+  { id:'e10', label:'School',  speak:'I want to go to school',cat:'noun',  icon:'🏫' },
+  { id:'e11', label:'Dad',     speak:'Dad',                  cat:'person', icon:'👨' },
+  { id:'e12', label:'Hug',     speak:'I want a hug',         cat:'social', icon:'🤗' },
+];
+
+const ALL_PAGES   = [BUTTONS, BUTTONS_P2, BUTTONS_P3];
+const PAGE_LABELS = ['💬 Core', '💭 Feelings', '🍎 Food & Fun'];
+
+/* ─── STATE ─── */
+let labels   = {};   // custom labels by button id
+let photos   = {};   // base64 photos by button id
+let tokens   = 0;    // 0-5
+let ftData   = { first: { text:'', photo:'' }, then: { text:'', photo:'' } };
+let quietMode = false;
+let isEditMode = false;
+let currentMode = 'talk';
+let stripWords  = [];
+let editingId   = null;
+let currentPage    = 0;       // 0=Core 1=Feelings 2=Food
+let ftFirstDone    = false;   // F/T completion flow
+let diaryLog       = [];      // [{word, ts}]
+let isLocked       = false;
+let lockHoldTimer  = null;
+let lockHoldAnimId = null;
+let lockHoldStart  = 0;
+let swipeStartX    = 0;
+let swipeStartY    = 0;
+let editingFt   = null;   // 'first' | 'then'
+let pendingBtnPhoto = null;
+let pendingFtPhoto  = null;
+const DEBOUNCE = 1200;   // ms — generous for toddler fine motor
+const lastTap  = {};
+const HOLD_MS  = 3000;   // ms to hold for edit mode
+let editHoldTimer  = null;
+let editHoldStart  = 0;
+let editHoldAnimId = null;
+
+/* ─────────────────────────────────────────────
+   LOCALSTORAGE
+   ───────────────────────────────────────────── */
+function loadStorage() {
+  try {
+    labels    = JSON.parse(localStorage.getItem('tt_labels')  || '{}');
+    photos    = JSON.parse(localStorage.getItem('tt_photos')  || '{}');
+    tokens    = parseInt(localStorage.getItem('tt_tokens')    || '0', 10);
+    ftData    = JSON.parse(localStorage.getItem('tt_ft')      || '{"first":{"text":"","photo":""},"then":{"text":"","photo":""}}');
+    diaryLog  = JSON.parse(localStorage.getItem('tt_diary')   || '[]');
+    currentPage = parseInt(localStorage.getItem('tt_page')   || '0', 10);
+  } catch(e) {
+    labels = {}; photos = {}; tokens = 0;
+    ftData = { first:{text:'',photo:''}, then:{text:'',photo:''} };
+  }
+}
+
+function saveStorage() {
+  try {
+    localStorage.setItem('tt_labels',  JSON.stringify(labels));
+    localStorage.setItem('tt_photos',  JSON.stringify(photos));
+    localStorage.setItem('tt_tokens',  String(tokens));
+    localStorage.setItem('tt_ft',      JSON.stringify(ftData));
+    localStorage.setItem('tt_diary',   JSON.stringify(diaryLog.slice(-800)));
+    localStorage.setItem('tt_page',    String(currentPage));
+  } catch(e) {}
+}
+
+/* ─────────────────────────────────────────────
+   SPEECH SYNTHESIS
+   ───────────────────────────────────────────── */
+let speechWake = false;
+
+/* Pre-load voices so getVoices() is populated on first use */
+if (window.speechSynthesis) {
+  if (window.speechSynthesis.onvoiceschanged !== undefined) {
+    window.speechSynthesis.onvoiceschanged = () => { window.speechSynthesis.getVoices(); };
+  }
+  window.speechSynthesis.getVoices();
+}
+
+document.addEventListener('touchstart', () => {
+  if (!speechWake) {
+    const u = new SpeechSynthesisUtterance('');
+    window.speechSynthesis.speak(u);
+    speechWake = true;
+  }
+}, { once: true, passive: true });
+
+function getChildVoice() {
+  const voices = window.speechSynthesis.getVoices();
+  if (!voices.length) return null;
+  /* Priority: warm named voices → any English voice → first available */
+  const prefer = [
+    v => /samantha|karen|moira|tessa|fiona|zira|hazel/i.test(v.name),
+    v => /google/i.test(v.name) && /en/i.test(v.lang),
+    v => /en[-_]?(us|gb|au)/i.test(v.lang)
+  ];
+  for (const fn of prefer) {
+    const match = voices.find(fn);
+    if (match) return match;
+  }
+  return voices[0];
+}
+
+function speak(text) {
+  if (quietMode || !text) return;
+  window.speechSynthesis.cancel();
+  const u = new SpeechSynthesisUtterance(text);
+  u.rate  = 0.88;
+  u.pitch = 1.25;  /* Warm, slightly elevated pitch — friendly, not distorted */
+  const voice = getChildVoice();
+  if (voice) u.voice = voice;
+  window.speechSynthesis.speak(u);
+}
+
+/* ─────────────────────────────────────────────
+   WEB AUDIO
+   ───────────────────────────────────────────── */
+let audioCtx = null;
+
+function getAudioCtx() {
+  if (!audioCtx) {
+    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  }
+  return audioCtx;
+}
+
+function playTap() {
+  if (quietMode) return;
+  try {
+    const ctx = getAudioCtx();
+    const o   = ctx.createOscillator();
+    const g   = ctx.createGain();
+    o.connect(g); g.connect(ctx.destination);
+    o.type = 'sine';
+    o.frequency.setValueAtTime(880, ctx.currentTime);
+    o.frequency.exponentialRampToValueAtTime(660, ctx.currentTime + 0.08);
+    g.gain.setValueAtTime(0.18, ctx.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.18);
+    o.start(); o.stop(ctx.currentTime + 0.18);
+  } catch(e) {}
+}
+
+function playCelebration() {
+  if (quietMode) return;
+  try {
+    const ctx   = getAudioCtx();
+    const notes = [523, 659, 784, 880, 1047, 1175, 1319];
+    notes.forEach((freq, i) => {
+      const o = ctx.createOscillator();
+      const g = ctx.createGain();
+      o.connect(g); g.connect(ctx.destination);
+      o.type = 'triangle';
+      const t = ctx.currentTime + i * 0.13;
+      o.frequency.setValueAtTime(freq, t);
+      g.gain.setValueAtTime(0.28, t);
+      g.gain.exponentialRampToValueAtTime(0.001, t + 0.28);
+      o.start(t); o.stop(t + 0.28);
+    });
+  } catch(e) {}
+}
+
+/* ─────────────────────────────────────────────
+   GRID RENDERING
+   ───────────────────────────────────────────── */
+function renderGrid() {
+  const board = document.getElementById('grid-board');
+  board.innerHTML = '';
+
+  ALL_PAGES[currentPage].forEach(b => {
+    const el  = document.createElement('button');
+    el.className = `comm-btn cat-${b.cat}`;
+    el.setAttribute('data-id', b.id);
+    el.setAttribute('aria-label', labels[b.id] || b.label);
+    el.style.setProperty('--hold-pct', '0%');
+
+    /* Icon or photo */
+    const photo = photos[b.id];
+    if (photo) {
+      const img = document.createElement('img');
+      img.className = 'btn-photo';
+      img.src = photo;
+      img.alt = '';
+      el.appendChild(img);
+    } else {
+      const ic = document.createElement('span');
+      ic.className = 'btn-icon';
+      ic.textContent = b.icon;
+      ic.setAttribute('aria-hidden', 'true');
+      el.appendChild(ic);
+    }
+
+    /* Label */
+    const lbl = document.createElement('span');
+    lbl.className = 'btn-label';
+    lbl.textContent = labels[b.id] || b.label;
+    el.appendChild(lbl);
+
+    /* ── Touch-on-release (no hold mechanic) ── */
+    let touchActive = false;
+
+    el.addEventListener('touchstart', (e) => {
+      e.preventDefault();
+      touchActive = true;
+    }, { passive: false });
+
+    el.addEventListener('touchend', (e) => {
+      e.preventDefault();
+      if (!touchActive) return;
+      touchActive = false;
+
+      /* Debounce */
+      const now = Date.now();
+      if (lastTap[b.id] && now - lastTap[b.id] < DEBOUNCE) return;
+      lastTap[b.id] = now;
+
+      handleBtnActivate(b, el);
+    }, { passive: false });
+
+    el.addEventListener('touchmove', () => {
+      /* Drag-to-cancel */
+      touchActive = false;
+    }, { passive: true });
+
+    /* Desktop fallback (click) */
+    el.addEventListener('click', () => {
+      if ('ontouchstart' in window) return;
+      if (isEditMode) { openEditOverlay(b.id); return; }
+      handleBtnActivate(b, el);
+    });
+
+    board.appendChild(el);
+  });
+}
+
+function handleBtnActivate(b, el) {
+  if (isEditMode) {
+    openEditOverlay(b.id);
+    return;
+  }
+
+  /* Haptic */
+  if (navigator.vibrate) navigator.vibrate(45);
+
+  /* Visual pulse */
+  el.classList.remove('btn-tapped', 'btn-pulse');
+  void el.offsetWidth;
+  el.classList.add('btn-tapped', 'btn-pulse');
+  setTimeout(() => el.classList.remove('btn-tapped', 'btn-pulse'), 420);
+
+  playTap();
+
+  const lbl = labels[b.id] || b.label;
+  speak(lbl);
+  addToStrip(lbl);
+
+  /* Log to diary */
+  logDiary(lbl);
+}
+
+/* ─────────────────────────────────────────────
+   SENTENCE STRIP
+   ───────────────────────────────────────────── */
+function addToStrip(word) {
+  if (stripWords.length >= 4) return;
+  stripWords.push(word);
+  renderStrip();
+}
+
+function renderStrip() {
+  const container = document.getElementById('strip-words-list');
+  container.querySelectorAll('.strip-word').forEach(e => e.remove());
+  stripWords.forEach(w => {
+    const span = document.createElement('span');
+    span.className = 'strip-word';
+    span.textContent = w;
+    container.appendChild(span);
+  });
+}
+
+function speakStrip() {
+  if (stripWords.length === 0) {
+    const btn = document.getElementById('say-it-btn');
+    btn.classList.remove('empty-shake');
+    void btn.offsetWidth; /* force reflow to restart animation */
+    btn.classList.add('empty-shake');
+    setTimeout(() => btn.classList.remove('empty-shake'), 450);
+    return;
+  }
+  speak(stripWords.join(' '));
+}
+
+function clearStrip() {
+  stripWords = [];
+  renderStrip();
+}
+
+/* ─────────────────────────────────────────────
+   TOKEN BOARD
+   ───────────────────────────────────────────── */
+function renderTokens() {
+  for (let i = 1; i <= 5; i++) {
+    document.getElementById('tok' + i).classList.toggle('earned', i <= tokens);
+  }
+}
+
+let celebrationTimer  = null;
+let undoBarAnimId     = null;
+const UNDO_MS         = 1500;
+
+function addToken() {
+  if (tokens < 5) {
+    tokens++;
+    renderTokens();
+    saveStorage();
+    if (tokens === 5) {
+      showUndoToast();
+    }
+  }
+}
+
+function showUndoToast() {
+  const toast = document.getElementById('undo-toast');
+  toast.classList.add('visible');
+  const start = Date.now();
+  function animBar() {
+    const pct = Math.max(0, 100 - ((Date.now() - start) / UNDO_MS) * 100);
+    toast.style.setProperty('--undo-pct', pct + '%');
+    if (pct > 0) undoBarAnimId = requestAnimationFrame(animBar);
+  }
+  undoBarAnimId = requestAnimationFrame(animBar);
+  celebrationTimer = setTimeout(() => {
+    hideUndoToast();
+    showCelebration();
+  }, UNDO_MS);
+}
+
+function hideUndoToast() {
+  const toast = document.getElementById('undo-toast');
+  toast.classList.remove('visible');
+  if (celebrationTimer) { clearTimeout(celebrationTimer); celebrationTimer = null; }
+  if (undoBarAnimId)    { cancelAnimationFrame(undoBarAnimId); undoBarAnimId = null; }
+  toast.style.setProperty('--undo-pct', '100%');
+}
+
+function cancelCelebration() {
+  hideUndoToast();
+  tokens = 4;
+  renderTokens();
+  saveStorage();
+}
+
+function fillTokens4() {
+  tokens = 4;
+  renderTokens();
+  saveStorage();
+}
+
+function resetTokens() {
+  tokens = 0;
+  renderTokens();
+  saveStorage();
+}
+
+function showCelebration() {
+  document.getElementById('celebration').classList.add('active');
+  playCelebration();
+  speak('Great job! You did it! Amazing work!');
+}
+
+function closeCelebration() {
+  document.getElementById('celebration').classList.remove('active');
+  resetTokens();
+}
+
+/* ─────────────────────────────────────────────
+   EDIT MODE  (3-second hold on EDIT button)
+   ───────────────────────────────────────────── */
+function startEditHold(e) {
+  e.preventDefault();
+  /* Already in edit mode — exit immediately on tap, no hold needed */
+  if (isEditMode) { exitEditMode(); return; }
+
+  editHoldStart = Date.now();
+
+  function animateBar() {
+    const elapsed = Date.now() - editHoldStart;
+    const pct     = Math.min(100, (elapsed / HOLD_MS) * 100);
+    document.getElementById('btn-edit').style.setProperty('--hold-pct', pct + '%');
+    if (pct < 100) editHoldAnimId = requestAnimationFrame(animateBar);
+  }
+  editHoldAnimId = requestAnimationFrame(animateBar);
+
+  editHoldTimer = setTimeout(() => {
+    editHoldTimer = null;
+    document.getElementById('btn-edit').style.setProperty('--hold-pct', '0%');
+    cancelAnimationFrame(editHoldAnimId);
+    enterEditMode();
+  }, HOLD_MS);
+}
+
+function cancelEditHold() {
+  if (editHoldTimer)  { clearTimeout(editHoldTimer); editHoldTimer = null; }
+  if (editHoldAnimId) { cancelAnimationFrame(editHoldAnimId); editHoldAnimId = null; }
+  document.getElementById('btn-edit').style.setProperty('--hold-pct', '0%');
+}
+
+/* ─────────────────────────────────────────────
+   HOLD-TO-TOGGLE: SOUND BUTTON
+   ───────────────────────────────────────────── */
+let quietHoldTimer = null;
+let quietHoldStart = 0;
+let quietHoldAnimId = null;
+
+function startQuietHold(e) {
+  e.preventDefault();
+  quietHoldStart = Date.now();
+
+  function animateBar() {
+    const elapsed = Date.now() - quietHoldStart;
+    const pct = Math.min(100, (elapsed / HOLD_MS) * 100);
+    document.getElementById('btn-quiet').style.setProperty('--hold-pct', pct + '%');
+    if (pct < 100) quietHoldAnimId = requestAnimationFrame(animateBar);
+  }
+  quietHoldAnimId = requestAnimationFrame(animateBar);
+
+  quietHoldTimer = setTimeout(() => {
+    quietHoldTimer = null;
+    document.getElementById('btn-quiet').style.setProperty('--hold-pct', '0%');
+    cancelAnimationFrame(quietHoldAnimId);
+    toggleQuiet();
+  }, HOLD_MS);
+}
+
+function cancelQuietHold() {
+  if (quietHoldTimer) { clearTimeout(quietHoldTimer); quietHoldTimer = null; }
+  if (quietHoldAnimId) { cancelAnimationFrame(quietHoldAnimId); quietHoldAnimId = null; }
+  document.getElementById('btn-quiet').style.setProperty('--hold-pct', '0%');
+}
+
+/* ─────────────────────────────────────────────
+   HOLD-TO-TOGGLE: FIRST/THEN BUTTON
+   ───────────────────────────────────────────── */
+let ftHoldTimer = null;
+let ftHoldStart = 0;
+let ftHoldAnimId = null;
+
+function startFtHold(e) {
+  e.preventDefault();
+  /* Already in FT mode — exit immediately on tap, no hold needed */
+  if (currentMode === 'ft') { setMode('talk'); return; }
+
+  ftHoldStart = Date.now();
+
+  function animateBar() {
+    const elapsed = Date.now() - ftHoldStart;
+    const pct = Math.min(100, (elapsed / HOLD_MS) * 100);
+    document.getElementById('btn-ft').style.setProperty('--hold-pct', pct + '%');
+    if (pct < 100) ftHoldAnimId = requestAnimationFrame(animateBar);
+  }
+  ftHoldAnimId = requestAnimationFrame(animateBar);
+
+  ftHoldTimer = setTimeout(() => {
+    ftHoldTimer = null;
+    document.getElementById('btn-ft').style.setProperty('--hold-pct', '0%');
+    cancelAnimationFrame(ftHoldAnimId);
+    setMode('ft');
+  }, HOLD_MS);
+}
+
+function cancelFtHold() {
+  if (ftHoldTimer) { clearTimeout(ftHoldTimer); ftHoldTimer = null; }
+  if (ftHoldAnimId) { cancelAnimationFrame(ftHoldAnimId); ftHoldAnimId = null; }
+  document.getElementById('btn-ft').style.setProperty('--hold-pct', '0%');
+}
+
+function enterEditMode() {
+  isEditMode = true;
+  document.body.classList.add('edit-mode');
+  document.getElementById('btn-edit').classList.add('active');
+}
+
+function exitEditMode() {
+  isEditMode = false;
+  document.body.classList.remove('edit-mode');
+  document.getElementById('btn-edit').classList.remove('active');
+}
+
+/* ─────────────────────────────────────────────
+   EDIT OVERLAY — individual button
+   ───────────────────────────────────────────── */
+function openEditOverlay(id) {
+  editingId       = id;
+  pendingBtnPhoto = null;
+
+  const btn = ALL_PAGES.flat().find(b => b.id === id);
+  document.getElementById('edit-modal-title').textContent =
+    '✏️ Edit: ' + (labels[id] || btn.label);
+  document.getElementById('edit-lbl-input').value = labels[id] || btn.label;
+
+  const thumb = document.getElementById('edit-thumb');
+  if (photos[id]) {
+    thumb.src = photos[id];
+    thumb.classList.add('visible');
+  } else {
+    thumb.src = '';
+    thumb.classList.remove('visible');
+  }
+
+  document.getElementById('btn-photo-input').value = '';
+  document.getElementById('edit-overlay').classList.add('active');
+  setTimeout(() => document.getElementById('edit-lbl-input').focus(), 80);
+}
+
+function closeEditOverlay() {
+  editingId       = null;
+  pendingBtnPhoto = null;
+  document.getElementById('edit-overlay').classList.remove('active');
+}
+
+function saveEdit() {
+  if (!editingId) return;
+  const savedId = editingId;
+  const newLbl = document.getElementById('edit-lbl-input').value.trim();
+  if (newLbl) labels[savedId] = newLbl;
+  if (pendingBtnPhoto) photos[savedId] = pendingBtnPhoto;
+  saveStorage();
+  renderGrid();
+  closeEditOverlay();
+  /* Flash the saved button green to confirm */
+  const savedBtn = document.getElementById(savedId);
+  if (savedBtn) {
+    savedBtn.style.outline = '4px solid #22c55e';
+    savedBtn.style.outlineOffset = '2px';
+    setTimeout(() => {
+      savedBtn.style.outline = '';
+      savedBtn.style.outlineOffset = '';
+    }, 1200);
+  }
+}
+
+function resetEdit() {
+  if (!editingId) return;
+  delete labels[editingId];
+  delete photos[editingId];
+  saveStorage();
+  renderGrid();
+  closeEditOverlay();
+}
+
+/* ─────────────────────────────────────────────
+   FIRST/THEN OVERLAY
+   ───────────────────────────────────────────── */
+function openFtOverlay(which) {
+  editingFt       = which;
+  pendingFtPhoto  = null;
+
+  document.getElementById('ft-modal-title').textContent =
+    'Set ' + which.toUpperCase();
+  document.getElementById('ft-lbl-input').value = ftData[which].text || '';
+
+  const thumb = document.getElementById('ft-thumb');
+  if (ftData[which].photo) {
+    thumb.src = ftData[which].photo;
+    thumb.classList.add('visible');
+  } else {
+    thumb.src = '';
+    thumb.classList.remove('visible');
+  }
+
+  document.getElementById('ft-photo-input').value = '';
+  document.getElementById('ft-overlay').classList.add('active');
+  setTimeout(() => document.getElementById('ft-lbl-input').focus(), 80);
+}
+
+function closeFtOverlay() {
+  editingFt      = null;
+  pendingFtPhoto = null;
+  document.getElementById('ft-overlay').classList.remove('active');
+}
+
+function saveFt() {
+  if (!editingFt) return;
+  const txt = document.getElementById('ft-lbl-input').value.trim();
+  if (txt)            ftData[editingFt].text  = txt;
+  if (pendingFtPhoto) ftData[editingFt].photo = pendingFtPhoto;
+  saveStorage();
+  renderFt();
+  closeFtOverlay();
+}
+
+/* ─────────────────────────────────────────────
+   PHOTO UPLOAD (shared handler)
+   ───────────────────────────────────────────── */
+function triggerPhoto(which) {
+  document.getElementById(which === 'btn' ? 'btn-photo-input' : 'ft-photo-input').click();
+}
+
+function handleBtnPhoto(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = ev => {
+    pendingBtnPhoto = ev.target.result;
+    const thumb = document.getElementById('edit-thumb');
+    thumb.src = pendingBtnPhoto;
+    thumb.classList.add('visible');
+  };
+  reader.readAsDataURL(file);
+}
+
+function handleFtPhoto(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = ev => {
+    pendingFtPhoto = ev.target.result;
+    const thumb = document.getElementById('ft-thumb');
+    thumb.src = pendingFtPhoto;
+    thumb.classList.add('visible');
+  };
+  reader.readAsDataURL(file);
+}
+
+/* ─────────────────────────────────────────────
+   MODE SWITCHING
+   ───────────────────────────────────────────── */
+function setMode(mode) {
+  currentMode = mode;
+
+  document.getElementById('btn-talk').classList.toggle('active', mode === 'talk');
+  document.getElementById('btn-ft').classList.toggle('active',   mode === 'ft');
+
+  const isTalk = mode === 'talk';
+  document.getElementById('grid-board').style.display = isTalk ? '' : 'none';
+  document.getElementById('ft-panel').classList.toggle('active', !isTalk);
+}
+
+function toggleQuiet() {
+  quietMode = !quietMode;
+  const btn = document.getElementById('btn-quiet');
+  btn.textContent = quietMode ? '🔇 MUTED' : '🔊 SOUND';
+  btn.classList.toggle('muted', quietMode);
+  if (quietMode) window.speechSynthesis.cancel();
+}
+
+/* ─────────────────────────────────────────────
+   FIRST/THEN RENDER
+   ───────────────────────────────────────────── */
+function renderFt() {
+  const setCard = (which) => {
+    const d = ftData[which];
+    const txt = document.getElementById(`ft-${which}-txt`);
+    const img = document.getElementById(`ft-${which}-img`);
+    txt.textContent = d.text || 'Tap to set ✏️';
+    if (d.photo) {
+      img.src = d.photo;
+      img.classList.add('visible');
+    } else {
+      img.src = '';
+      img.classList.remove('visible');
+    }
+  };
+  setCard('first');
+  setCard('then');
+}
+
+/* ─────────────────────────────────────────────
+   PWA — inline manifest + service worker
+   ───────────────────────────────────────────── */
+function installPWA() {
+  /* Manifest */
+  const manifest = {
+    name:             'TinyTalker Pro',
+    short_name:       'TinyTalker',
+    start_url:        '.',
+    display:          'standalone',
+    background_color: '#FFFBF0',
+    theme_color:      '#1a3a5c',
+    orientation:      'portrait-primary',
+    icons: [{
+      src: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'%3E%3Crect width='192' height='192' rx='32' fill='%231a3a5c'/%3E%3Ctext y='130' x='96' font-size='110' text-anchor='middle'%3E🧒%3C/text%3E%3C/svg%3E",
+      sizes: '192x192',
+      type:  'image/svg+xml'
+    }]
+  };
+  const mBlob = new Blob([JSON.stringify(manifest)], { type: 'application/manifest+json' });
+  const link  = document.createElement('link');
+  link.rel  = 'manifest';
+  link.href = URL.createObjectURL(mBlob);
+  document.head.appendChild(link);
+
+  /* Service Worker */
+  if ('serviceWorker' in navigator) {
+    const sw = `
+const CACHE = 'tt-v1';
+self.addEventListener('install',  e => { self.skipWaiting(); });
+self.addEventListener('activate', e => { e.waitUntil(self.clients.claim()); });
+self.addEventListener('fetch', e => {
+  e.respondWith(
+    caches.open(CACHE).then(cache =>
+      cache.match(e.request).then(cached => {
+        const net = fetch(e.request).then(res => {
+          cache.put(e.request, res.clone());
+          return res;
+        }).catch(() => cached);
+        return cached || net;
+      })
+    )
+  );
+});`;
+    const swBlob = new Blob([sw], { type: 'application/javascript' });
+    navigator.serviceWorker.register(URL.createObjectURL(swBlob)).catch(() => {});
+  }
+}
+
+
+/* ─────────────────────────────────────────────
+   SWIPE PAGES
+   ───────────────────────────────────────────── */
+function goToPage(n) {
+  currentPage = n;
+  renderGrid();
+  updatePageDots();
+  saveStorage();
+}
+
+function updatePageDots() {
+  document.querySelectorAll('.page-tab').forEach((tab, i) => {
+    tab.classList.toggle('active', i === currentPage);
+  });
+}
+
+function setupSwipe() {
+  const board = document.getElementById('main-view');
+  board.addEventListener('touchstart', e => {
+    swipeStartX = e.touches[0].clientX;
+    swipeStartY = e.touches[0].clientY;
+  }, { passive: true });
+
+  board.addEventListener('touchend', e => {
+    const dx = e.changedTouches[0].clientX - swipeStartX;
+    const dy = e.changedTouches[0].clientY - swipeStartY;
+    if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 55) {
+      if (dx < 0 && currentPage < 2) goToPage(currentPage + 1);
+      if (dx > 0 && currentPage > 0) goToPage(currentPage - 1);
+    }
+  }, { passive: true });
+}
+
+/* ─────────────────────────────────────────────
+   COMMUNICATION DIARY
+   ───────────────────────────────────────────── */
+function logDiary(word) {
+  const today = new Date().toDateString();
+  diaryLog.push({ word, ts: Date.now(), date: today });
+  saveStorage();
+  updateDiaryBadge();
+}
+
+function todayEntries() {
+  const today = new Date().toDateString();
+  return diaryLog.filter(e => e.date === today);
+}
+
+function updateDiaryBadge() {
+  const badge = document.getElementById('comm-badge');
+  if (!badge) return;
+  const count = todayEntries().length;
+  badge.textContent = '🗣️ ' + count;
+}
+
+function openDiary() {
+  const entries  = todayEntries();
+  const total    = entries.length;
+  const today    = new Date().toLocaleDateString('en-US', { weekday:'long', month:'long', day:'numeric' });
+
+  /* most used word */
+  const freq = {};
+  entries.forEach(e => { freq[e.word] = (freq[e.word] || 0) + 1; });
+  const topWord = Object.keys(freq).sort((a,b) => freq[b]-freq[a])[0] || '—';
+
+  /* sessions this week */
+  const weekAgo = Date.now() - 7*24*3600*1000;
+  const days = new Set(diaryLog.filter(e => e.ts > weekAgo).map(e => e.date));
+
+  document.getElementById('diary-date').textContent  = today;
+  document.getElementById('diary-total').textContent = total;
+  document.getElementById('diary-top').textContent   = total ? topWord + ' (' + freq[topWord] + 'x)' : '—';
+  document.getElementById('diary-sessions').textContent = days.size;
+
+  const list = document.getElementById('diary-words-list');
+  list.innerHTML = '';
+  if (entries.length === 0) {
+    list.innerHTML = '<span style="color:#94a3b8;font-size:13px">No words yet today — start talking! 💬</span>';
+  } else {
+    /* show last 40 words newest-first */
+    entries.slice().reverse().slice(0, 40).forEach(e => {
+      const chip = document.createElement('span');
+      chip.className = 'diary-word-chip';
+      chip.textContent = e.word;
+      list.appendChild(chip);
+    });
+  }
+
+  document.getElementById('diary-overlay').classList.add('active');
+}
+
+function closeDiary() {
+  document.getElementById('diary-overlay').classList.remove('active');
+}
+
+function clearDiary() {
+  const today = new Date().toDateString();
+  diaryLog = diaryLog.filter(e => e.date !== today);
+  saveStorage();
+  updateDiaryBadge();
+  openDiary(); /* refresh */
+}
+
+/* ─────────────────────────────────────────────
+   HOLD-TO-ACTIVATE: LOCK BUTTON
+   ───────────────────────────────────────────── */
+let lockActivateTimer  = null;
+let lockActivateAnimId = null;
+let lockActivateStart  = 0;
+
+function startLockActivate(e) {
+  e.preventDefault();
+  lockActivateStart = Date.now();
+  function animBar() {
+    const elapsed = Date.now() - lockActivateStart;
+    const pct = Math.min(100, (elapsed / HOLD_MS) * 100);
+    document.getElementById('btn-lock').style.setProperty('--hold-pct', pct + '%');
+    if (pct < 100) lockActivateAnimId = requestAnimationFrame(animBar);
+  }
+  lockActivateAnimId = requestAnimationFrame(animBar);
+  lockActivateTimer = setTimeout(() => {
+    lockActivateTimer = null;
+    document.getElementById('btn-lock').style.setProperty('--hold-pct', '0%');
+    cancelAnimationFrame(lockActivateAnimId);
+    lockScreen();
+  }, HOLD_MS);
+}
+
+function cancelLockActivate() {
+  if (lockActivateTimer)  { clearTimeout(lockActivateTimer);      lockActivateTimer  = null; }
+  if (lockActivateAnimId) { cancelAnimationFrame(lockActivateAnimId); lockActivateAnimId = null; }
+  document.getElementById('btn-lock').style.setProperty('--hold-pct', '0%');
+}
+
+/* ─────────────────────────────────────────────
+   LOCK SCREEN
+   ───────────────────────────────────────────── */
+function lockScreen() {
+  isLocked = true;
+  document.getElementById('lock-screen').classList.add('active');
+}
+
+let unlockHoldTimer  = null;
+let unlockHoldAnimId = null;
+let unlockHoldStart  = 0;
+
+function startUnlockHold(e) {
+  e.preventDefault();
+  unlockHoldStart = Date.now();
+  const btn = document.getElementById('unlock-btn');
+  function animBar() {
+    const pct = Math.min(100, ((Date.now() - unlockHoldStart) / HOLD_MS) * 100);
+    btn.style.setProperty('--unlock-pct', pct + '%');
+    if (pct < 100) unlockHoldAnimId = requestAnimationFrame(animBar);
+  }
+  unlockHoldAnimId = requestAnimationFrame(animBar);
+  unlockHoldTimer = setTimeout(() => {
+    unlockHoldTimer = null;
+    cancelAnimationFrame(unlockHoldAnimId);
+    btn.style.setProperty('--unlock-pct', '0%');
+    isLocked = false;
+    document.getElementById('lock-screen').classList.remove('active');
+  }, HOLD_MS);
+}
+
+function cancelUnlockHold() {
+  if (unlockHoldTimer)  { clearTimeout(unlockHoldTimer);        unlockHoldTimer  = null; }
+  if (unlockHoldAnimId) { cancelAnimationFrame(unlockHoldAnimId); unlockHoldAnimId = null; }
+  const btn = document.getElementById('unlock-btn');
+  if (btn) btn.style.setProperty('--unlock-pct', '0%');
+}
+
+/* setupLockHold no longer needed — unlock button handles it */
+function setupLockHold() {}
+
+/* ─────────────────────────────────────────────
+   HOLD-TO-ACTIVATE: TODAY (DIARY) BUTTON
+   ───────────────────────────────────────────── */
+let diaryHoldTimer = null, diaryHoldAnimId = null, diaryHoldStart = 0;
+function startDiaryHold(e) {
+  e.preventDefault();
+  diaryHoldStart = Date.now();
+  function anim() {
+    const pct = Math.min(100, ((Date.now() - diaryHoldStart) / HOLD_MS) * 100);
+    document.getElementById('btn-diary').style.setProperty('--hold-pct', pct + '%');
+    if (pct < 100) diaryHoldAnimId = requestAnimationFrame(anim);
+  }
+  diaryHoldAnimId = requestAnimationFrame(anim);
+  diaryHoldTimer = setTimeout(() => {
+    diaryHoldTimer = null;
+    document.getElementById('btn-diary').style.setProperty('--hold-pct', '0%');
+    cancelAnimationFrame(diaryHoldAnimId);
+    openDiary();
+  }, HOLD_MS);
+}
+function cancelDiaryHold() {
+  if (diaryHoldTimer)  { clearTimeout(diaryHoldTimer);        diaryHoldTimer  = null; }
+  if (diaryHoldAnimId) { cancelAnimationFrame(diaryHoldAnimId); diaryHoldAnimId = null; }
+  document.getElementById('btn-diary').style.setProperty('--hold-pct', '0%');
+}
+
+/* ─────────────────────────────────────────────
+   HOLD-TO-ACTIVATE: PRINT BUTTON
+   ───────────────────────────────────────────── */
+let printHoldTimer = null, printHoldAnimId = null, printHoldStart = 0;
+function startPrintHold(e) {
+  e.preventDefault();
+  printHoldStart = Date.now();
+  function anim() {
+    const pct = Math.min(100, ((Date.now() - printHoldStart) / HOLD_MS) * 100);
+    document.getElementById('btn-print').style.setProperty('--hold-pct', pct + '%');
+    if (pct < 100) printHoldAnimId = requestAnimationFrame(anim);
+  }
+  printHoldAnimId = requestAnimationFrame(anim);
+  printHoldTimer = setTimeout(() => {
+    printHoldTimer = null;
+    document.getElementById('btn-print').style.setProperty('--hold-pct', '0%');
+    cancelAnimationFrame(printHoldAnimId);
+    printLayout();
+  }, HOLD_MS);
+}
+function cancelPrintHold() {
+  if (printHoldTimer)  { clearTimeout(printHoldTimer);        printHoldTimer  = null; }
+  if (printHoldAnimId) { cancelAnimationFrame(printHoldAnimId); printHoldAnimId = null; }
+  document.getElementById('btn-print').style.setProperty('--hold-pct', '0%');
+}
+
+/* ─────────────────────────────────────────────
+   PRINT LAYOUT
+   ───────────────────────────────────────────── */
+function printLayout() {
+  window.print();
+}
+
+/* ─────────────────────────────────────────────
+   FIRST/THEN COMPLETION FLOW
+   ───────────────────────────────────────────── */
+function setupFtCompletion() {
+  ['first','then'].forEach(which => {
+    const card = document.getElementById('ft-' + which + '-card');
+    let holdTimer = null;
+    let didHold   = false;
+
+    card.addEventListener('touchstart', (e) => {
+      e.preventDefault();
+      didHold = false;
+      holdTimer = setTimeout(() => {
+        didHold = true;
+        openFtOverlay(which);   /* long-press always opens edit */
+      }, 600);
+    }, { passive: false });
+
+    card.addEventListener('touchend', (e) => {
+      e.preventDefault();
+      clearTimeout(holdTimer);
+      if (didHold) return;   /* hold already handled */
+
+      const hasContent = ftData[which].text || ftData[which].photo;
+
+      /* Empty card OR edit mode → open setup form */
+      if (!hasContent || isEditMode) {
+        openFtOverlay(which);
+        return;
+      }
+
+      /* Card has content → completion flow */
+      if (which === 'first') {
+        if (ftFirstDone) { resetFtCompletion(); return; }
+        ftFirstDone = true;
+        document.getElementById('ft-first-card').classList.add('done');
+        document.getElementById('ft-then-card').classList.add('next-up');
+        if (navigator.vibrate) navigator.vibrate([40, 60, 40]);
+        speak('Good job! Now it is time for ' + (ftData.then.text || 'then'));
+      } else {
+        if (!ftFirstDone) return;
+        resetFtCompletion();
+        if (navigator.vibrate) navigator.vibrate([40,40,40,40,80]);
+        speak('Amazing! You did it! Great job!');
+      }
+    }, { passive: false });
+
+    card.addEventListener('touchmove', () => {
+      clearTimeout(holdTimer);
+    }, { passive: true });
+
+    /* Desktop fallback */
+    card.addEventListener('click', () => {
+      const hasContent = ftData[which].text || ftData[which].photo;
+      if (!hasContent || isEditMode) { openFtOverlay(which); return; }
+      if (which === 'first') {
+        if (ftFirstDone) { resetFtCompletion(); return; }
+        ftFirstDone = true;
+        document.getElementById('ft-first-card').classList.add('done');
+        document.getElementById('ft-then-card').classList.add('next-up');
+        speak('Good job! Now it is time for ' + (ftData.then.text || 'then'));
+      } else {
+        if (!ftFirstDone) return;
+        resetFtCompletion();
+        speak('Amazing! You did it! Great job!');
+      }
+    });
+  });
+}
+
+function resetFtCompletion() {
+  ftFirstDone = false;
+  document.getElementById('ft-first-card').classList.remove('done');
+  document.getElementById('ft-then-card').classList.remove('next-up');
+}
+
+/* ─────────────────────────────────────────────
+   FIRST/THEN CARD TAPS (now handled by setupFtCompletion)
+   ───────────────────────────────────────────── */
+function setupFtCardTaps() {
+  document.getElementById('ft-first-card').addEventListener('click', () => {
+    if (!isEditMode) return;
+    openFtOverlay('first');
+  });
+  document.getElementById('ft-then-card').addEventListener('click', () => {
+    if (!isEditMode) return;
+    openFtOverlay('then');
+  });
+}
+
+/* ─────────────────────────────────────────────
+   PREVENT RUBBER-BAND SCROLL
+   ───────────────────────────────────────────── */
+function preventScroll() {
+  document.addEventListener('touchmove', (e) => {
+    const t = e.target;
+    if (t.closest('input, textarea, .overlay')) return;
+    e.preventDefault();
+  }, { passive: false });
+}
+
+/* ─────────────────────────────────────────────
+   INIT
+   ───────────────────────────────────────────── */
+function setupOverlayButtons() {
+  /* Wire up FT overlay Save/Cancel with both touch and click */
+  function bindBtn(id, fn) {
+    const el = document.getElementById(id);
+    if (!el) return;
+    let touched = false;
+    el.addEventListener('touchend', (e) => {
+      e.preventDefault();
+      touched = true;
+      fn();
+      setTimeout(() => { touched = false; }, 400);
+    }, { passive: false });
+    el.addEventListener('click', () => { if (!touched) fn(); });
+  }
+  bindBtn('ft-save-btn',    saveFt);
+  bindBtn('ft-cancel-btn',  closeFtOverlay);
+}
+
+function init() {
+  loadStorage();
+  renderGrid();
+  renderTokens();
+  renderFt();
+  setupFtCompletion();
+  setupOverlayButtons();
+  setupSwipe();
+  setupLockHold();
+  updatePageDots();
+  updateDiaryBadge();
+  preventScroll();
+  installPWA();
+}
+
+document.addEventListener('DOMContentLoaded', init);
+</script>
+
+</body>
+</html>
