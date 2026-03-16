@@ -66,13 +66,21 @@
     /* ============ SENTENCE STRIP ============ */
     #strip {
       display: flex;
+      flex-direction: column;
+      gap: 5px;
+      background: var(--strip-bg);
+      border-radius: var(--radius-md);
+      padding: 6px 8px 8px;
+      flex-shrink: 0;
+    }
+
+    /* Row 1: word chips + clear */
+    #strip-top-row {
+      display: flex;
       flex-direction: row;
       align-items: center;
       gap: 6px;
-      background: var(--strip-bg);
-      border-radius: var(--radius-md);
-      padding: 5px 8px;
-      flex-shrink: 0;
+      min-height: 30px;
     }
 
     #strip-words-list {
@@ -81,7 +89,6 @@
       gap: 5px;
       flex: 1;
       overflow: hidden;
-      min-height: 36px;
     }
 
     .strip-word {
@@ -101,11 +108,12 @@
       to   { transform: scale(1);   opacity: 1; }
     }
 
+    /* Row 2: big full-width SAY IT button */
     #say-it-btn {
       background: #FFD700;
       color: #1a3a5c;
-      padding: 10px 18px;
-      font-size: 16px;
+      padding: 13px 18px;
+      font-size: 21px;
       font-weight: 900;
       border: none;
       border-radius: 11px;
@@ -113,22 +121,24 @@
       line-height: 1;
       display: flex;
       align-items: center;
-      gap: 6px;
-      flex-shrink: 0;
+      justify-content: center;
+      gap: 8px;
+      width: 100%;
       white-space: nowrap;
-      box-shadow: 0 3px 0 rgba(0,0,0,0.18);
+      box-shadow: 0 4px 0 rgba(0,0,0,0.22);
+      letter-spacing: 0.5px;
     }
 
     #say-it-btn:active {
       box-shadow: 0 1px 0 rgba(0,0,0,0.15);
-      transform: translateY(2px);
+      transform: translateY(3px);
     }
 
     #clear-top-btn {
       flex-shrink: 0;
       border: none;
       border-radius: 8px;
-      padding: 6px 9px;
+      padding: 4px 9px;
       font-size: 17px;
       cursor: pointer;
       background: rgba(255,255,255,0.12);
@@ -437,7 +447,7 @@
     #btn-quiet::after,
     #btn-lock::after,
     #btn-diary::after,
-    #btn-print::after {
+    #btn-settings::after {
       content: '';
       position: absolute;
       bottom: 0; left: 0;
@@ -884,12 +894,78 @@
       to   { box-shadow: 0 0 0 6px #FFD700, 0 0 28px rgba(255,215,0,0.75); }
     }
 
+    /* ============ SETTINGS OVERLAY ============ */
+    #settings-section {
+      background: #f8fafc;
+      border-radius: 12px;
+      padding: 12px 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    #settings-section + #settings-section { margin-top: 4px; }
+    .settings-label {
+      font-size: 11px;
+      font-weight: 800;
+      color: #64748b;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+    #last-backup-display {
+      font-size: 13px;
+      color: #64748b;
+      font-weight: 600;
+    }
+
+    /* ============ BACKUP NUDGE TOAST ============ */
+    #backup-nudge {
+      display: none;
+      position: fixed;
+      bottom: 80px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #1a3a5c;
+      color: #fff;
+      border-radius: 14px;
+      padding: 11px 16px;
+      font-size: 14px;
+      font-weight: 800;
+      align-items: center;
+      gap: 10px;
+      z-index: 200;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.35);
+      white-space: nowrap;
+    }
+    #backup-nudge.visible { display: flex; }
+    #backup-nudge-dismiss {
+      border: 1px solid rgba(255,255,255,0.35);
+      background: transparent;
+      color: white;
+      border-radius: 6px;
+      padding: 3px 8px;
+      font-size: 12px;
+      font-weight: 800;
+      cursor: pointer;
+    }
+
+    /* ============ EDIT BANNER BACKUP BUTTON ============ */
+    #edit-banner-backup {
+      background: rgba(120,53,15,0.15);
+      border: 1px solid rgba(120,53,15,0.3);
+      color: #78350f;
+      border-radius: 7px;
+      padding: 4px 9px;
+      font-size: 15px;
+      cursor: pointer;
+      line-height: 1;
+    }
+
     /* ============ PRINT ============ */
     @media print {
       #toolbar, #strip-controls, .tok-ctrl, #edit-banner,
       #undo-toast, #celebration, #lock-screen, #diary-overlay,
       #comm-badge, #page-tabs, #clear-top-btn,
-      #btn-lock, #btn-diary, #btn-print { display: none !important; }
+      #btn-lock, #btn-diary, #btn-settings { display: none !important; }
       body { background: white !important; overflow: visible !important; }
       html, body { height: auto !important; }
       #app { height: auto !important; overflow: visible !important; padding: 12px; }
@@ -912,15 +988,17 @@
     #offline-bar {
       display: none;
       position: fixed;
-      top: 0; left: 0; right: 0;
+      top: 8px; right: 8px;
       background: #ef4444;
       color: white;
-      font-size: 12px;
+      font-size: 11px;
       font-weight: 800;
-      text-align: center;
-      padding: 5px 8px;
+      padding: 4px 10px;
+      border-radius: 20px;
       z-index: 400;
-      letter-spacing: 0.5px;
+      letter-spacing: 0.3px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+      pointer-events: none;
     }
     #offline-bar.visible { display: block; }
 
@@ -957,6 +1035,18 @@
     /* ============ PRIVACY NOTICE ============ */
     #privacy-overlay { z-index: 500; }
 
+    /* ============ VERSION TAG ============ */
+    #version-tag {
+      position: fixed;
+      bottom: 10px; right: 10px;
+      font-size: 10px;
+      font-weight: 700;
+      color: rgba(0,0,0,0.18);
+      pointer-events: none;
+      z-index: 1;
+      letter-spacing: 0.3px;
+    }
+
     /* ============ UTILITY ============ */
     .hide { display: none !important; }
   </style>
@@ -967,9 +1057,13 @@
 
   <!-- ─── SENTENCE STRIP ─── -->
   <div id="strip">
-    <button id="say-it-btn" onclick="speakStrip()"><span style="font-size:17px">🗣️</span> SAY IT</button>
-    <div id="strip-words-list"></div>
-    <button id="clear-top-btn" onclick="clearStrip()" aria-label="Clear all words">🗑️</button>
+    <!-- Row 1: word chips + clear -->
+    <div id="strip-top-row">
+      <div id="strip-words-list"></div>
+      <button id="clear-top-btn" onclick="clearStrip()" aria-label="Clear all words">🗑️</button>
+    </div>
+    <!-- Row 2: big SAY IT button -->
+    <button id="say-it-btn" onclick="speakStrip()"><span style="font-size:22px">🗣️</span> SAY IT</button>
   </div>
 
   <!-- ─── TOKEN BOARD ─── -->
@@ -988,6 +1082,7 @@
   <!-- ─── EDIT BANNER ─── -->
   <div id="edit-banner">
     <span>✏️ Edit Mode — tap any button to change it</span>
+    <button id="edit-banner-backup" onclick="openSettings()" title="Back up your settings">💾</button>
     <button class="exit-edit-btn" onclick="exitEditMode()">Done ✓</button>
   </div>
 
@@ -1044,9 +1139,9 @@
     <button class="tool-btn" id="btn-diary"
             ontouchstart="startDiaryHold(event)" ontouchend="cancelDiaryHold()"
             onmousedown="startDiaryHold(event)"  onmouseup="cancelDiaryHold()">📓 TODAY</button>
-    <button class="tool-btn" id="btn-print"
-            ontouchstart="startPrintHold(event)" ontouchend="cancelPrintHold()"
-            onmousedown="startPrintHold(event)"  onmouseup="cancelPrintHold()">🖨️ PRINT</button>
+    <button class="tool-btn" id="btn-settings"
+            ontouchstart="startSettingsHold(event)" ontouchend="cancelSettingsHold()"
+            onmousedown="startSettingsHold(event)"  onmouseup="cancelSettingsHold()">⚙️ SETTINGS</button>
     <button class="tool-btn" id="btn-lock"
             ontouchstart="startLockActivate(event)" ontouchend="cancelLockActivate()"
             onmousedown="startLockActivate(event)"  onmouseup="cancelLockActivate()">🔒 LOCK</button>
@@ -1117,7 +1212,6 @@
     <span id="unlock-bar"></span>
   </button>
   <div id="lock-hint">Protecting settings from little fingers 👆</div>
-  <div style="font-size:11px;color:rgba(255,255,255,0.25);margin-top:8px">TinyTalker Pro v<span class="app-ver"></span></div>
 </div>
 
 <!-- ─── DIARY OVERLAY ─── -->
@@ -1148,19 +1242,51 @@
     </div>
     <div id="diary-words-title">Today's Words</div>
     <div id="diary-words-list"></div>
-    <div style="display:flex;gap:8px;margin-bottom:4px">
-      <button class="mbtn mbtn-primary" style="font-size:13px;padding:9px 4px" onclick="exportSettings()">💾 Export</button>
-      <button class="mbtn mbtn-cancel"  style="font-size:13px;padding:9px 4px" onclick="document.getElementById('import-input').click()">📂 Import</button>
-      <input type="file" id="import-input" accept=".json" style="display:none" onchange="importSettings(event)">
-    </div>
     <button id="diary-close-btn" onclick="closeDiary()">Close ✓</button>
     <button id="diary-clear-btn" onclick="clearDiary()">Clear Today's Log</button>
     <p style="font-size:11px;color:#9ca3af;text-align:center;margin-top:6px">TinyTalker Pro v<span class="app-ver"></span></p>
   </div>
 </div>
 
+<!-- ─── SETTINGS OVERLAY ─── -->
+<div class="overlay" id="settings-overlay">
+  <div class="modal">
+    <div class="modal-title">⚙️ Parent Settings</div>
+
+    <!-- Backup & Restore -->
+    <div id="settings-section">
+      <div class="settings-label">Backup &amp; Restore</div>
+      <div id="last-backup-display">Last backup: checking…</div>
+      <div class="btn-row">
+        <button class="mbtn mbtn-primary" onclick="exportSettings()">💾 Export</button>
+        <button class="mbtn mbtn-cancel"  onclick="document.getElementById('import-input').click()">📂 Import</button>
+      </div>
+      <input type="file" id="import-input" accept=".json" style="display:none" onchange="importSettings(event)">
+      <p style="font-size:11px;color:#9ca3af;margin:0">Export saves all your custom labels, photos &amp; settings as a file. Import restores them. Do this before clearing your browser cache.</p>
+    </div>
+
+    <!-- Print -->
+    <div id="settings-section">
+      <div class="settings-label">Print</div>
+      <button class="mbtn mbtn-cancel" style="width:100%" onclick="printLayout();closeSettings()">🖨️ Print Communication Board</button>
+    </div>
+
+    <p style="font-size:11px;color:#9ca3af;text-align:center;margin:0">TinyTalker Pro v<span class="app-ver"></span></p>
+    <button class="mbtn mbtn-cancel" onclick="closeSettings()">Close</button>
+  </div>
+</div>
+
+<!-- ─── BACKUP NUDGE TOAST ─── -->
+<div id="backup-nudge">
+  <span>💾 Changes saved — back up via ⚙️ SETTINGS</span>
+  <button id="backup-nudge-dismiss" onclick="dismissBackupNudge()">✕</button>
+</div>
+
 <!-- ─── OFFLINE INDICATOR ─── -->
-<div id="offline-bar">📴 You're offline — the app still works!</div>
+<div id="offline-bar">📴 Offline</div>
+
+<!-- ─── VERSION TAG ─── -->
+<div id="version-tag">v<span class="app-ver"></span></div>
 
 <!-- ─── PRIVACY NOTICE (shown once on first launch) ─── -->
 <div class="overlay" id="privacy-overlay">
@@ -1729,6 +1855,7 @@ function cancelFtHold() {
 }
 
 function enterEditMode() {
+  hadEditSaves = false;   /* reset save flag for this edit session */
   isEditMode = true;
   document.body.classList.add('edit-mode');
   document.getElementById('btn-edit').classList.add('active');
@@ -1738,6 +1865,10 @@ function exitEditMode() {
   isEditMode = false;
   document.body.classList.remove('edit-mode');
   document.getElementById('btn-edit').classList.remove('active');
+  /* Show backup nudge if they saved something and haven't backed up recently */
+  if (hadEditSaves && shouldShowBackupNudge()) {
+    setTimeout(showBackupNudge, 400);
+  }
 }
 
 /* ─────────────────────────────────────────────
@@ -1774,6 +1905,7 @@ function closeEditOverlay() {
 
 function saveEdit() {
   if (!editingId) return;
+  hadEditSaves = true;   /* mark that at least one save happened this session */
   const savedId = editingId;
   const newLbl = document.getElementById('edit-lbl-input').value.trim();
   if (newLbl) labels[savedId] = newLbl;
@@ -2171,30 +2303,79 @@ function cancelDiaryHold() {
 }
 
 /* ─────────────────────────────────────────────
-   HOLD-TO-ACTIVATE: PRINT BUTTON
+   HOLD-TO-ACTIVATE: SETTINGS BUTTON
    ───────────────────────────────────────────── */
-let printHoldTimer = null, printHoldAnimId = null, printHoldStart = 0;
-function startPrintHold(e) {
+let settingsHoldTimer = null, settingsHoldAnimId = null, settingsHoldStart = 0;
+
+function startSettingsHold(e) {
   e.preventDefault();
-  printHoldStart = Date.now();
+  settingsHoldStart = Date.now();
   function anim() {
-    const pct = Math.min(100, ((Date.now() - printHoldStart) / HOLD_MS) * 100);
-    document.getElementById('btn-print').style.setProperty('--hold-pct', pct + '%');
-    if (pct < 100) printHoldAnimId = requestAnimationFrame(anim);
+    const pct = Math.min(100, ((Date.now() - settingsHoldStart) / HOLD_MS) * 100);
+    document.getElementById('btn-settings').style.setProperty('--hold-pct', pct + '%');
+    if (pct < 100) settingsHoldAnimId = requestAnimationFrame(anim);
   }
-  printHoldAnimId = requestAnimationFrame(anim);
-  printHoldTimer = setTimeout(() => {
-    printHoldTimer = null;
-    document.getElementById('btn-print').style.setProperty('--hold-pct', '0%');
-    cancelAnimationFrame(printHoldAnimId);
-    printLayout();
+  settingsHoldAnimId = requestAnimationFrame(anim);
+  settingsHoldTimer = setTimeout(() => {
+    settingsHoldTimer = null;
+    document.getElementById('btn-settings').style.setProperty('--hold-pct', '0%');
+    cancelAnimationFrame(settingsHoldAnimId);
+    openSettings();
   }, HOLD_MS);
 }
-function cancelPrintHold() {
-  if (printHoldTimer)  { clearTimeout(printHoldTimer);        printHoldTimer  = null; }
-  if (printHoldAnimId) { cancelAnimationFrame(printHoldAnimId); printHoldAnimId = null; }
-  document.getElementById('btn-print').style.setProperty('--hold-pct', '0%');
+
+function cancelSettingsHold() {
+  if (settingsHoldTimer)  { clearTimeout(settingsHoldTimer);           settingsHoldTimer  = null; }
+  if (settingsHoldAnimId) { cancelAnimationFrame(settingsHoldAnimId);  settingsHoldAnimId = null; }
+  document.getElementById('btn-settings').style.setProperty('--hold-pct', '0%');
 }
+
+function openSettings() {
+  const el = document.getElementById('last-backup-display');
+  if (el) el.textContent = 'Last backup: ' + getLastBackupText();
+  document.getElementById('settings-overlay').classList.add('active');
+}
+
+function closeSettings() {
+  document.getElementById('settings-overlay').classList.remove('active');
+}
+
+function getLastBackupText() {
+  const ts = localStorage.getItem('tt_last_backup');
+  if (!ts) return 'never — consider exporting now!';
+  const days = Math.floor((Date.now() - parseInt(ts, 10)) / (1000 * 60 * 60 * 24));
+  if (days === 0) return 'today ✓';
+  if (days === 1) return 'yesterday';
+  if (days < 7)  return days + ' days ago';
+  return days + ' days ago ⚠️';
+}
+
+/* ─────────────────────────────────────────────
+   BACKUP NUDGE (shown on edit-mode exit when needed)
+   ───────────────────────────────────────────── */
+let hadEditSaves    = false;
+let backupNudgeTimer = null;
+
+function shouldShowBackupNudge() {
+  const ts = localStorage.getItem('tt_last_backup');
+  if (!ts) return true;   /* never backed up — always nudge */
+  return (Date.now() - parseInt(ts, 10)) > 7 * 24 * 60 * 60 * 1000;
+}
+
+function showBackupNudge() {
+  const nudge = document.getElementById('backup-nudge');
+  nudge.classList.add('visible');
+  if (backupNudgeTimer) clearTimeout(backupNudgeTimer);
+  backupNudgeTimer = setTimeout(() => nudge.classList.remove('visible'), 6000);
+}
+
+function dismissBackupNudge() {
+  const nudge = document.getElementById('backup-nudge');
+  nudge.classList.remove('visible');
+  if (backupNudgeTimer) { clearTimeout(backupNudgeTimer); backupNudgeTimer = null; }
+}
+
+/* PRINT — now accessed via ⚙️ SETTINGS panel (startPrintHold removed) */
 
 /* ─────────────────────────────────────────────
    PRINT LAYOUT
@@ -2365,6 +2546,11 @@ function dismissA2HS() {
    EXPORT / IMPORT SETTINGS
    ───────────────────────────────────────────── */
 function exportSettings() {
+  /* Record backup timestamp */
+  localStorage.setItem('tt_last_backup', String(Date.now()));
+  const el = document.getElementById('last-backup-display');
+  if (el) el.textContent = 'Last backup: today ✓';
+
   const data = {
     version:   APP_VERSION,
     exported:  new Date().toISOString(),
