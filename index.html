@@ -908,6 +908,55 @@
       }
     }
 
+    /* ============ OFFLINE INDICATOR ============ */
+    #offline-bar {
+      display: none;
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      background: #ef4444;
+      color: white;
+      font-size: 12px;
+      font-weight: 800;
+      text-align: center;
+      padding: 5px 8px;
+      z-index: 400;
+      letter-spacing: 0.5px;
+    }
+    #offline-bar.visible { display: block; }
+
+    /* ============ ADD TO HOME SCREEN BANNER ============ */
+    #a2hs-banner {
+      display: none;
+      position: fixed;
+      bottom: 0; left: 0; right: 0;
+      background: #1a3a5c;
+      color: white;
+      padding: 10px 14px 16px;
+      z-index: 350;
+      font-size: 13px;
+      font-weight: 700;
+      align-items: center;
+      gap: 10px;
+      border-top: 2px solid rgba(255,229,102,0.5);
+    }
+    #a2hs-banner.visible { display: flex; }
+    #a2hs-text { flex: 1; line-height: 1.5; }
+    #a2hs-dismiss {
+      background: rgba(255,255,255,0.15);
+      border: 1px solid rgba(255,255,255,0.3);
+      color: white;
+      border-radius: 8px;
+      padding: 6px 10px;
+      font-size: 12px;
+      font-weight: 800;
+      cursor: pointer;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+
+    /* ============ PRIVACY NOTICE ============ */
+    #privacy-overlay { z-index: 500; }
+
     /* ============ UTILITY ============ */
     .hide { display: none !important; }
   </style>
@@ -920,7 +969,6 @@
   <div id="strip">
     <button id="say-it-btn" onclick="speakStrip()"><span style="font-size:17px">🗣️</span> SAY IT</button>
     <div id="strip-words-list"></div>
-    <span id="comm-badge" onclick="openDiary()" title="Today's communication log">🗣️ 0</span>
     <button id="clear-top-btn" onclick="clearStrip()" aria-label="Clear all words">🗑️</button>
   </div>
 
@@ -956,6 +1004,9 @@
       </button>
       <button class="page-tab" onclick="goToPage(2)">
         🍎<div class="page-tab-label">Food & Fun</div>
+      </button>
+      <button class="page-tab" onclick="goToPage(3)">
+        ❤️<div class="page-tab-label">Me & You</div>
       </button>
     </div>
 
@@ -1066,6 +1117,7 @@
     <span id="unlock-bar"></span>
   </button>
   <div id="lock-hint">Protecting settings from little fingers 👆</div>
+  <div style="font-size:11px;color:rgba(255,255,255,0.25);margin-top:8px">TinyTalker Pro v<span class="app-ver"></span></div>
 </div>
 
 <!-- ─── DIARY OVERLAY ─── -->
@@ -1096,9 +1148,43 @@
     </div>
     <div id="diary-words-title">Today's Words</div>
     <div id="diary-words-list"></div>
+    <div style="display:flex;gap:8px;margin-bottom:4px">
+      <button class="mbtn mbtn-primary" style="font-size:13px;padding:9px 4px" onclick="exportSettings()">💾 Export</button>
+      <button class="mbtn mbtn-cancel"  style="font-size:13px;padding:9px 4px" onclick="document.getElementById('import-input').click()">📂 Import</button>
+      <input type="file" id="import-input" accept=".json" style="display:none" onchange="importSettings(event)">
+    </div>
     <button id="diary-close-btn" onclick="closeDiary()">Close ✓</button>
     <button id="diary-clear-btn" onclick="clearDiary()">Clear Today's Log</button>
+    <p style="font-size:11px;color:#9ca3af;text-align:center;margin-top:6px">TinyTalker Pro v<span class="app-ver"></span></p>
   </div>
+</div>
+
+<!-- ─── OFFLINE INDICATOR ─── -->
+<div id="offline-bar">📴 You're offline — the app still works!</div>
+
+<!-- ─── PRIVACY NOTICE (shown once on first launch) ─── -->
+<div class="overlay" id="privacy-overlay">
+  <div class="modal" style="text-align:center">
+    <div style="font-size:48px;line-height:1;margin-bottom:4px">🔒</div>
+    <div class="modal-title" style="text-align:center">Your Privacy</div>
+    <p style="font-size:14px;color:#374151;line-height:1.65;margin:4px 0">
+      <strong>Everything stays on your device.</strong><br><br>
+      TinyTalker Pro stores all customizations, photos, and communication data
+      <strong>locally on this device only</strong>.
+      Nothing is ever sent to a server.
+      No accounts. No tracking. No data collection.
+    </p>
+    <p style="font-size:11px;color:#9ca3af;margin-bottom:6px">v<span id="version-display"></span></p>
+    <div class="btn-row">
+      <button class="mbtn mbtn-primary" onclick="dismissPrivacy()">Got it! 👍</button>
+    </div>
+  </div>
+</div>
+
+<!-- ─── ADD TO HOME SCREEN BANNER ─── -->
+<div id="a2hs-banner">
+  <span id="a2hs-text"></span>
+  <button id="a2hs-dismiss" onclick="dismissA2HS()">✕</button>
 </div>
 
 <script>
@@ -1158,8 +1244,23 @@ const BUTTONS_P3 = [
   { id:'e12', label:'Hug',     speak:'I want a hug',         cat:'social', icon:'🤗' },
 ];
 
-const ALL_PAGES   = [BUTTONS, BUTTONS_P2, BUTTONS_P3];
-const PAGE_LABELS = ['💬 Core', '💭 Feelings', '🍎 Food & Fun'];
+const BUTTONS_P4 = [
+  { id:'g1',  label:'I',        speak:'I',               cat:'person', icon:'🫵' },
+  { id:'g2',  label:'You',      speak:'You',             cat:'person', icon:'👆' },
+  { id:'g3',  label:'Love',     speak:'I love you',      cat:'social', icon:'❤️' },
+  { id:'g4',  label:'Want',     speak:'I want',          cat:'verb',   icon:'🙏' },
+  { id:'g5',  label:'My',       speak:'My turn',         cat:'person', icon:'😊' },
+  { id:'g6',  label:'Me',       speak:'Help me',         cat:'person', icon:'🫰' },
+  { id:'g7',  label:'Like',     speak:'I like it',       cat:'verb',   icon:'💕' },
+  { id:'g8',  label:'Please',   speak:'Please',          cat:'social', icon:'✨' },
+  { id:'g9',  label:'Thank You',speak:'Thank you',       cat:'social', icon:'🤝' },
+  { id:'g10', label:'Again',    speak:'Do it again',     cat:'verb',   icon:'🔄' },
+  { id:'g11', label:'Up',       speak:'Pick me up',      cat:'verb',   icon:'⬆️' },
+  { id:'g12', label:'Turn',     speak:'My turn',         cat:'verb',   icon:'🎯' },
+];
+
+const ALL_PAGES   = [BUTTONS, BUTTONS_P2, BUTTONS_P3, BUTTONS_P4];
+const PAGE_LABELS = ['💬 Core', '💭 Feelings', '🍎 Food & Fun', '❤️ Me & You'];
 
 /* ─── STATE ─── */
 let labels   = {};   // custom labels by button id
@@ -1895,7 +1996,7 @@ function setupSwipe() {
     const dx = e.changedTouches[0].clientX - swipeStartX;
     const dy = e.changedTouches[0].clientY - swipeStartY;
     if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 55) {
-      if (dx < 0 && currentPage < 2) goToPage(currentPage + 1);
+      if (dx < 0 && currentPage < ALL_PAGES.length - 1) goToPage(currentPage + 1);
       if (dx > 0 && currentPage > 0) goToPage(currentPage - 1);
     }
   }, { passive: true });
@@ -2179,6 +2280,131 @@ function resetFtCompletion() {
 }
 
 /* ─────────────────────────────────────────────
+   APP VERSION
+   ───────────────────────────────────────────── */
+const APP_VERSION = '2.2.0';
+
+/* Capture Android/Chrome native install prompt */
+let deferredInstallPrompt = null;
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault();
+  deferredInstallPrompt = e;
+});
+
+/* ─────────────────────────────────────────────
+   OFFLINE INDICATOR
+   ───────────────────────────────────────────── */
+function setupOfflineIndicator() {
+  const bar = document.getElementById('offline-bar');
+  function update() {
+    bar.classList.toggle('visible', !navigator.onLine);
+  }
+  window.addEventListener('online',  update);
+  window.addEventListener('offline', update);
+  update();
+}
+
+/* ─────────────────────────────────────────────
+   PRIVACY NOTICE  (shown once on first visit)
+   ───────────────────────────────────────────── */
+function checkPrivacyNotice() {
+  /* Stamp version number into all .app-ver spans and #version-display */
+  document.querySelectorAll('.app-ver').forEach(el => { el.textContent = APP_VERSION; });
+  const vd = document.getElementById('version-display');
+  if (vd) vd.textContent = APP_VERSION;
+
+  if (localStorage.getItem('tt_privacy')) return;
+  document.getElementById('privacy-overlay').classList.add('active');
+}
+
+function dismissPrivacy() {
+  localStorage.setItem('tt_privacy', '1');
+  document.getElementById('privacy-overlay').classList.remove('active');
+  /* Check A2HS after user dismisses privacy notice */
+  setTimeout(checkA2HS, 1000);
+}
+
+/* ─────────────────────────────────────────────
+   ADD TO HOME SCREEN  (shown once)
+   ───────────────────────────────────────────── */
+function checkA2HS() {
+  if (localStorage.getItem('tt_a2hs')) return;
+  /* Already installed as standalone PWA — skip */
+  if (window.navigator.standalone || window.matchMedia('(display-mode: standalone)').matches) return;
+
+  const banner = document.getElementById('a2hs-banner');
+  const textEl = document.getElementById('a2hs-text');
+
+  if (deferredInstallPrompt) {
+    /* Android/Chrome — native install available */
+    textEl.innerHTML = '📲 Install TinyTalker for the best experience!';
+    document.getElementById('a2hs-dismiss').onclick = () => {
+      localStorage.setItem('tt_a2hs', '1');
+      banner.classList.remove('visible');
+      deferredInstallPrompt.prompt();
+    };
+    banner.classList.add('visible');
+  } else {
+    /* iOS or other — show manual instructions */
+    const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
+    if (isIOS) {
+      textEl.innerHTML = '📱 Tap <strong>Share ⬆️</strong> then <strong>Add to Home Screen</strong> for the best experience.';
+    } else {
+      textEl.innerHTML = '📱 Add TinyTalker to your Home Screen via your browser menu for the best experience.';
+    }
+    banner.classList.add('visible');
+  }
+}
+
+function dismissA2HS() {
+  localStorage.setItem('tt_a2hs', '1');
+  document.getElementById('a2hs-banner').classList.remove('visible');
+}
+
+/* ─────────────────────────────────────────────
+   EXPORT / IMPORT SETTINGS
+   ───────────────────────────────────────────── */
+function exportSettings() {
+  const data = {
+    version:   APP_VERSION,
+    exported:  new Date().toISOString(),
+    tt_labels: JSON.parse(localStorage.getItem('tt_labels') || '{}'),
+    tt_photos: JSON.parse(localStorage.getItem('tt_photos') || '{}'),
+    tt_tokens: localStorage.getItem('tt_tokens') || '0',
+    tt_ft:     JSON.parse(localStorage.getItem('tt_ft') || '{}'),
+    tt_diary:  JSON.parse(localStorage.getItem('tt_diary') || '[]'),
+  };
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href     = url;
+  a.download = 'TinyTalker-backup-' + new Date().toISOString().slice(0, 10) + '.json';
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+function importSettings(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = ev => {
+    try {
+      const data = JSON.parse(ev.target.result);
+      if (data.tt_labels !== undefined) localStorage.setItem('tt_labels', JSON.stringify(data.tt_labels));
+      if (data.tt_photos !== undefined) localStorage.setItem('tt_photos', JSON.stringify(data.tt_photos));
+      if (data.tt_tokens !== undefined) localStorage.setItem('tt_tokens', String(data.tt_tokens));
+      if (data.tt_ft     !== undefined) localStorage.setItem('tt_ft',     JSON.stringify(data.tt_ft));
+      if (data.tt_diary  !== undefined) localStorage.setItem('tt_diary',  JSON.stringify(data.tt_diary));
+      alert('Settings imported! The app will now reload.');
+      window.location.reload();
+    } catch(err) {
+      alert('Import failed — the file may be corrupted. Please try again.');
+    }
+  };
+  reader.readAsText(file);
+}
+
+/* ─────────────────────────────────────────────
    FIRST/THEN CARD TAPS (now handled by setupFtCompletion)
    ───────────────────────────────────────────── */
 function setupFtCardTaps() {
@@ -2237,6 +2463,10 @@ function init() {
   updateDiaryBadge();
   preventScroll();
   installPWA();
+  setupOfflineIndicator();
+  checkPrivacyNotice();
+  /* If privacy already dismissed on a previous visit, check A2HS after a short delay */
+  if (localStorage.getItem('tt_privacy')) setTimeout(checkA2HS, 1500);
 }
 
 document.addEventListener('DOMContentLoaded', init);
