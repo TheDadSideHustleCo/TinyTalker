@@ -1289,7 +1289,15 @@
         <button class="mbtn mbtn-cancel"  onclick="document.getElementById('import-input').click()">📂 Import</button>
       </div>
       <input type="file" id="import-input" accept=".json" style="display:none" onchange="importSettings(event)">
-      <p style="font-size:11px;color:#9ca3af;margin:0">Export saves all your custom labels, photos &amp; settings as a file. Import restores them. Do this before clearing your browser cache.</p>
+      <p style="font-size:11px;color:#9ca3af;margin:0 0 6px">Export saves all your custom labels, photos &amp; settings as a file. Import restores them.</p>
+      <div style="background:#fef3c7;border:1.5px solid #f59e0b;border-radius:8px;padding:8px 10px">
+        <p style="font-size:11px;font-weight:800;color:#92400e;margin:0 0 3px">⚠️ Export before doing any of these:</p>
+        <p style="font-size:11px;color:#78350f;margin:0;line-height:1.6">
+          &bull; Clearing Safari history or website data<br>
+          &bull; <strong>Removing TinyTalker from your Home Screen</strong> &mdash; iOS will erase all your customizations<br>
+          &bull; Switching to a new device
+        </p>
+      </div>
     </div>
 
     <!-- Print -->
@@ -2134,7 +2142,7 @@ function installPWA() {
   /* Service Worker */
   if ('serviceWorker' in navigator) {
     const sw = `
-const CACHE = 'tt-v6';
+const CACHE = 'tt-v7';
 self.addEventListener('install',  e => { self.skipWaiting(); });
 self.addEventListener('activate', e => { e.waitUntil(self.clients.claim()); });
 self.addEventListener('fetch', e => {
@@ -2518,7 +2526,7 @@ function resetFtCompletion() {
 /* ─────────────────────────────────────────────
    APP VERSION
    ───────────────────────────────────────────── */
-const APP_VERSION = '2.2.2';
+const APP_VERSION = '2.2.3';
 
 /* Capture Android/Chrome native install prompt */
 let deferredInstallPrompt = null;
