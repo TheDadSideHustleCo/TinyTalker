@@ -127,6 +127,9 @@
       white-space: nowrap;
       box-shadow: 0 4px 0 rgba(0,0,0,0.22);
       letter-spacing: 0.5px;
+      user-select: none;
+      -webkit-user-select: none;
+      -webkit-touch-callout: none;
     }
 
     #say-it-btn:active {
@@ -145,6 +148,9 @@
       color: #374151;
       line-height: 1;
       margin-left: auto;
+      user-select: none;
+      -webkit-user-select: none;
+      -webkit-touch-callout: none;
     }
 
     @keyframes sayItShake {
@@ -451,6 +457,9 @@
       gap: 4px;
       line-height: 1;
       position: relative;
+      user-select: none;
+      -webkit-user-select: none;
+      -webkit-touch-callout: none;
     }
 
     .tool-btn.active { background: var(--header-bg); color: white; }
@@ -2125,7 +2134,7 @@ function installPWA() {
   /* Service Worker */
   if ('serviceWorker' in navigator) {
     const sw = `
-const CACHE = 'tt-v5';
+const CACHE = 'tt-v6';
 self.addEventListener('install',  e => { self.skipWaiting(); });
 self.addEventListener('activate', e => { e.waitUntil(self.clients.claim()); });
 self.addEventListener('fetch', e => {
@@ -2509,7 +2518,7 @@ function resetFtCompletion() {
 /* ─────────────────────────────────────────────
    APP VERSION
    ───────────────────────────────────────────── */
-const APP_VERSION = '2.2.1';
+const APP_VERSION = '2.2.2';
 
 /* Capture Android/Chrome native install prompt */
 let deferredInstallPrompt = null;
