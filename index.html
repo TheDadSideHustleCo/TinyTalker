@@ -74,7 +74,7 @@
       flex-shrink: 0;
     }
 
-    /* Row 1: word chips + clear */
+    /* Row 1: word chips only (trash can moved to token row) */
     #strip-top-row {
       display: flex;
       flex-direction: row;
@@ -138,12 +138,13 @@
       flex-shrink: 0;
       border: none;
       border-radius: 8px;
-      padding: 4px 9px;
-      font-size: 17px;
+      padding: 7px 14px;
+      font-size: 24px;
       cursor: pointer;
-      background: rgba(255,255,255,0.12);
-      color: rgba(255,255,255,0.85);
+      background: #e5e7eb;
+      color: #374151;
       line-height: 1;
+      margin-left: auto;
     }
 
     @keyframes sayItShake {
@@ -169,6 +170,12 @@
       justify-content: center;
       flex-shrink: 0;
       padding: 2px 0;
+      position: relative;
+    }
+
+    #tokens #clear-top-btn {
+      position: absolute;
+      right: 0;
     }
 
     .tok-lbl {
@@ -1057,10 +1064,9 @@
 
   <!-- ─── SENTENCE STRIP ─── -->
   <div id="strip">
-    <!-- Row 1: word chips + clear -->
+    <!-- Row 1: word chips (full width — trash can moved to token row) -->
     <div id="strip-top-row">
       <div id="strip-words-list"></div>
-      <button id="clear-top-btn" onclick="clearStrip()" aria-label="Clear all words">🗑️</button>
     </div>
     <!-- Row 2: big SAY IT button -->
     <button id="say-it-btn" onclick="speakStrip()"><span style="font-size:22px">🗣️</span> SAY IT</button>
@@ -1077,6 +1083,7 @@
     <button class="tok-ctrl" onclick="addToken()" title="Give 1 token">+⭐</button>
     <button class="tok-ctrl" onclick="fillTokens4()" title="Fill to 4 (backward chaining)">⭐⭐⭐⭐</button>
     <button class="tok-ctrl" onclick="resetTokens()" title="Reset tokens">↺</button>
+    <button id="clear-top-btn" onclick="clearStrip()" aria-label="Clear sentence strip">🗑️</button>
   </div>
 
   <!-- ─── EDIT BANNER ─── -->
@@ -1485,6 +1492,11 @@ function getChildVoice() {
 function speak(text) {
   if (quietMode || !text) return;
   window.speechSynthesis.cancel();
+  /* Standalone capital 'I' is mis-read as "Capital I" by TTS engines.
+     'eye' is phonetically identical to the pronoun — sentences like
+     "I Love You" from the strip are passed as full strings and are
+     handled correctly by TTS context, so this guard is exact-match only. */
+  if (text === 'I') text = 'eye';
   const u = new SpeechSynthesisUtterance(text);
   u.rate  = 0.88;
   u.pitch = 1.25;  /* Warm, slightly elevated pitch — friendly, not distorted */
