@@ -184,6 +184,9 @@
       color: #1a3a5c;
       letter-spacing: 2px;
       text-transform: uppercase;
+      user-select: none;
+      -webkit-user-select: none;
+      -webkit-touch-callout: none;
     }
 
     .tok-star {
@@ -192,6 +195,8 @@
       transition: opacity 0.25s, transform 0.25s, filter 0.25s;
       line-height: 1;
       user-select: none;
+      -webkit-user-select: none;
+      -webkit-touch-callout: none;
     }
 
     .tok-star.earned {
@@ -210,6 +215,9 @@
       cursor: pointer;
       background: #e5e7eb;
       color: #374151;
+      user-select: none;
+      -webkit-user-select: none;
+      -webkit-touch-callout: none;
     }
 
     /* ============ EDIT BANNER ============ */
@@ -705,6 +713,9 @@
       transition: background 0.18s, border-color 0.18s, box-shadow 0.18s;
       color: #64748b;
       line-height: 1;
+      user-select: none;
+      -webkit-user-select: none;
+      -webkit-touch-callout: none;
     }
     .page-tab-label {
       font-size: 10px;
@@ -2114,7 +2125,7 @@ function installPWA() {
   /* Service Worker */
   if ('serviceWorker' in navigator) {
     const sw = `
-const CACHE = 'tt-v3';
+const CACHE = 'tt-v4';
 self.addEventListener('install',  e => { self.skipWaiting(); });
 self.addEventListener('activate', e => { e.waitUntil(self.clients.claim()); });
 self.addEventListener('fetch', e => {
